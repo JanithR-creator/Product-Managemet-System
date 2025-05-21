@@ -1,0 +1,43 @@
+services:
+    sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        container_name: sqlserver
+        environment:
+            - ACCEPT_EULA=Y
+            - SA_PASSWORD=Pwd@123456
+            - MSSQL_PID=Express 
+        ports:
+            - "1433:1433"
+        networks:
+            - microservicessolution-network
+    
+    productservice:
+        build: 
+            context: .
+            dockerfile: ProductService/Dockerfile
+        container_name: productservice
+        ports:
+           - "5001:80"
+        depends_on:
+           - sqlserver
+        networks:
+           - microservicessolution-network
+        environment:
+           - ASPNETCORE_ENVIRONMENT=Docker
+    
+    adapterservice:
+        build:
+            context: .
+            dockerfile: AdapterService/Dockerfile
+        container_name: adapterservice
+        ports:
+           - "5002:80"
+        networks:
+           - microservicessolution-network
+        environment:
+           - ASPNETCORE_ENVIRONMENT=Docker
+    
+
+networks:
+    microservicessolution-network:
+        driver: bridge
