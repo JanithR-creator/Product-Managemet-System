@@ -31,8 +31,8 @@ namespace ProductService.Controller
 
             if (products == null) return BadRequest("No products returned from adapter.");
 
-            dbContext.Products.AddRange(products);
-            await dbContext.SaveChangesAsync();
+            dbContext.Products.AddRange(products); //Add multiple entities efficiently
+            await dbContext.SaveChangesAsync(); //freeing up the thread while waiting for DB
 
             return Ok(products);
         }

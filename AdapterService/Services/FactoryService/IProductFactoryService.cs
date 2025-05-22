@@ -2,7 +2,7 @@
 
 namespace AdapterService.Services.FactoryService
 {
-    public interface IProductAdapterFactoryService
+    public interface IProductFactoryService
     {
         IProductAdapter Factory(string adapterKey);
     }

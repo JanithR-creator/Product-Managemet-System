@@ -7,9 +7,9 @@ namespace AdapterService.Controllers
     [ApiController]
     public class ProductAdapterController : ControllerBase
     {
-        private readonly IProductAdapterFactoryService adapterFactoryService;
+        private readonly IProductFactoryService adapterFactoryService;
 
-        public ProductAdapterController(IProductAdapterFactoryService adapterFactoryService)
+        public ProductAdapterController(IProductFactoryService adapterFactoryService)
         {
             this.adapterFactoryService = adapterFactoryService;
         }

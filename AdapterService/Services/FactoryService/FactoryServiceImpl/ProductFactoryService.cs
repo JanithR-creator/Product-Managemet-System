@@ -2,13 +2,13 @@
 
 namespace AdapterService.Services.FactoryService.FactoryServiceImpl
 {
-    public class ProductAdapterFactoryService : IProductAdapterFactoryService
+    public class ProductFactoryService : IProductFactoryService
     {
-        private readonly Dictionary<string, IProductAdapter> adapterMap;
+        private readonly Dictionary<string, IProductAdapter> adapterMap; //to fast access the correct adapter using key.Efficient lookup (O(1)).
 
-        public ProductAdapterFactoryService(IEnumerable<IProductAdapter> adapters)
+        public ProductFactoryService(IEnumerable<IProductAdapter> adapters) //adapter receives all regesterd adapter implementations
         {
-            adapterMap = adapters.ToDictionary(a => a.AdapterKey.ToLower());
+            adapterMap = adapters.ToDictionary(a => a.AdapterKey.ToLower()); //Converts the list of adapters into a dictionary:Value: the adapter object itself.
         }
 
         public IProductAdapter Factory(string adapterKey)
