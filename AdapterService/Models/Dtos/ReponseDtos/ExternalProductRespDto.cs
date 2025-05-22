@@ -1,4 +1,4 @@
-﻿namespace AdapterService.Models.Dtos
+﻿namespace AdapterService.Models.Dtos.ReponseDtos
 {
     public class ExternalProductRespDto
     {

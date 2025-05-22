@@ -22,10 +22,10 @@ namespace ProductService.Controller
         }
 
         [HttpPost("import")]
-        public async Task<IActionResult> ImportFromAdapter()
+        public async Task<IActionResult> ImportFromAdapter([FromQuery] string provider = "abc")
         {
             using var httpClient = new HttpClient();
-            var adapterUrl = "http://adapterservice:80/api/ProductAdapter"; // service name in Docker
+            var adapterUrl = $"http://adapterservice:80/api/ProductAdapter?provider={provider}"; // service name in Docker
 
             var products = await httpClient.GetFromJsonAsync<List<Product>>(adapterUrl);
 

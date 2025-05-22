@@ -1,5 +1,4 @@
-﻿using AdapterService.Services.Interfeces;
-using Microsoft.AspNetCore.Http;
+﻿using AdapterService.Services.FactoryService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AdapterService.Controllers
@@ -8,17 +7,18 @@ namespace AdapterService.Controllers
     [ApiController]
     public class ProductAdapterController : ControllerBase
     {
-        private readonly IProductAdapter _adapter;
+        private readonly IProductAdapterFactoryService adapterFactoryService;
 
-        public ProductAdapterController(IProductAdapter adapter)
+        public ProductAdapterController(IProductAdapterFactoryService adapterFactoryService)
         {
-            _adapter = adapter;
+            this.adapterFactoryService = adapterFactoryService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetFromAdapter()
+        public async Task<IActionResult> GetFromAdapter([FromQuery] string provider)
         {
-            var products = await _adapter.GetProductsAsync();
+            var adapter = this.adapterFactoryService.Factory(provider);
+            var products = await adapter.GetProductsAsync();
             return Ok(products);
         }
     }

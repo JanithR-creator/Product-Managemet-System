@@ -1,11 +1,12 @@
 ﻿using AdapterService.Models;
-using AdapterService.Models.Dtos;
-using AdapterService.Services.Interfeces;
+using AdapterService.Models.Dtos.ReponseDtos;
 
-namespace AdapterService.Services
+namespace AdapterService.Services.AdapterService.AdapterServiceImpl
 {
     public class ABCAdapter:IProductAdapter
     {
+        public string AdapterKey => "abc";
+
         private readonly HttpClient httpClient;
 
         public ABCAdapter(HttpClient httpClient)
@@ -17,7 +18,7 @@ namespace AdapterService.Services
         {
             var externalUrl = "http://host.docker.internal:3001/products";
 
-            var externalProducts = await this.httpClient.GetFromJsonAsync<List<ExternalProductRespDto>>(externalUrl);
+            var externalProducts = await httpClient.GetFromJsonAsync<List<ExternalProductRespDto>>(externalUrl);
 
             if (externalProducts == null) return new List<Product>();
 
