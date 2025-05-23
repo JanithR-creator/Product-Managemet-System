@@ -28,7 +28,8 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
                 Description = p.Description,
                 Price = p.Price,
                 Quantity = p.Quantity,
-                PruductType="school item"
+                PruductType="school item",
+                Provider="abc"
             }).ToList();
 
             return internalProduct;

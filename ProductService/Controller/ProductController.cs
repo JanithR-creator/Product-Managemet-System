@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductService.Data;
+using ProductService.Model.Dtos;
 using ProductService.Model.Entity;
 
 namespace ProductService.Controller
@@ -27,14 +28,43 @@ namespace ProductService.Controller
             using var httpClient = new HttpClient();
             var adapterUrl = $"http://adapterservice:80/api/ProductAdapter?provider={provider}"; // service name in Docker
 
-            var products = await httpClient.GetFromJsonAsync<List<Product>>(adapterUrl);
+            var products = await httpClient.GetFromJsonAsync<List<ProductDto>>(adapterUrl);
 
-            if (products == null) return BadRequest("No products returned from adapter.");
+            if (products == null || !products.Any())
+                return BadRequest("No products returned.");
 
-            dbContext.Products.AddRange(products); //Add multiple entities efficiently
+            var baseProducts = products.Select(p =>new Product
+            {
+                Provider = p.Provider,
+                Name = p.Name, 
+                Description = p.Description,
+                Price = p.Price,
+                Quantity = p.Quantity,
+                PruductType = p.PruductType
+            }).ToList();
+
+            dbContext.Products.AddRange(baseProducts); //Add multiple entities efficiently
             await dbContext.SaveChangesAsync(); //freeing up the thread while waiting for DB
 
-            return Ok(products);
+            foreach (var product in products)
+            {
+                var insertProduct = baseProducts.First(p=>p.Name == product.Name);
+
+                if (product.PruductType == "novel")
+                {
+                    dbContext.BookDetails.Add(new BookDetails
+                    {
+                        ProductId = insertProduct.ProductId,
+                        Author = product.Author,
+                        Publisher = product.Publisher,
+                        Category = product.Category
+                    });
+                }
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            return Ok(new { Imported = products.Count });
         }
     }
 }
