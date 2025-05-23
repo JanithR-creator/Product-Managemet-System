@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 //Registers Adapter as the implementation of IProductAdapter, and injects an HttpClient into it automatically.
-builder.Services.AddHttpClient<IProductAdapter, ABCAdapter>();
+builder.Services.AddHttpClient<IProductAdapter, SchoolItemAdapter>();
 
 //Registers factory service, so when .Factory("abc") is called, it can return the correct adapter (like ABCAdapter) using the dictionary set up in your factory.
 builder.Services.AddScoped<IProductFactoryService, ProductFactoryService>();

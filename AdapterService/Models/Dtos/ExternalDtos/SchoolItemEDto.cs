@@ -1,19 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ProductService.Model.Entity
+namespace AdapterService.Models.Dtos.ReponseDtos
 {
-    public class Product
+    public class SchoolItemEDto
     {
         public Guid ProductId { get; set; }
-        public string provider { get; set; }=string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; } = 0;
         public int Quantity { get; set; } = 0;
-        public string PruductType { get; set; } = string.Empty;
-        public string? Author { get; set; }
-        public string? Publisher { get; set; }
-        public string? Category { get; set; }
+        public string Category {  get; set; } = string.Empty;
+        public DateTime CreatedDate {  get; set; }
+        public bool IsAvailable { get; set; }
     }
 }

@@ -1,8 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
 using ProductService.Data;
-using ProductService.Services;
-using ProductService.Services.ServiceImpl;
 
 namespace ProductService
 {
@@ -22,8 +20,6 @@ namespace ProductService
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
-            builder.Services.AddScoped<ICategoryService, CategoryService>();
 
             builder.Services.AddDbContext<AppDbContext>(
                 options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

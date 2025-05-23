@@ -1,15 +1,15 @@
-﻿using AdapterService.Models;
+﻿using AdapterService.Models.Dtos.InternalDtos;
 using AdapterService.Models.Dtos.ReponseDtos;
 
 namespace AdapterService.Services.AdapterService.AdapterServiceImpl
 {
-    public class ABCAdapter:IProductAdapter
+    public class SchoolItemAdapter:IProductAdapter
     {
         public string AdapterKey => "abc";
 
         private readonly HttpClient httpClient;
 
-        public ABCAdapter(HttpClient httpClient)
+        public SchoolItemAdapter(HttpClient httpClient)
         {
             this.httpClient = httpClient;
         }
@@ -18,15 +18,17 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
         {
             var externalUrl = "http://host.docker.internal:3001/products";
 
-            var externalProducts = await httpClient.GetFromJsonAsync<List<ExternalProductRespDto>>(externalUrl);
+            var externalProducts = await httpClient.GetFromJsonAsync<List<SchoolItemEDto>>(externalUrl);
 
             if (externalProducts == null) return new List<Product>();
 
             var internalProduct = externalProducts.Select(p =>new Product
             {
-                Name=p.Title,
-                Description=p.Description,
-                Price=p.Price,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                Quantity = p.Quantity,
+                PruductType="school item"
             }).ToList();
 
             return internalProduct;

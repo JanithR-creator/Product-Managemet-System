@@ -1,4 +1,4 @@
-﻿using AdapterService.Models;
+﻿using AdapterService.Models.Dtos.InternalDtos;
 
 namespace AdapterService.Services.AdapterService
 {
