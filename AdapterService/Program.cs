@@ -1,4 +1,5 @@
 using AdapterService.Services.AdapterService;
+using AdapterService.Services.AdapterService.Adapters;
 using AdapterService.Services.AdapterService.AdapterServiceImpl;
 using AdapterService.Services.FactoryService;
 using AdapterService.Services.FactoryService.FactoryServiceImpl;
@@ -9,6 +10,7 @@ builder.Services.AddControllers();
 
 //Registers Adapter as the implementation of IProductAdapter, and injects an HttpClient into it automatically.
 builder.Services.AddHttpClient<IProductAdapter, SchoolItemAdapter>();
+builder.Services.AddHttpClient<IProductAdapter, NovelsAdapter>();
 
 //Registers factory service, so when .Factory("abc") is called, it can return the correct adapter (like ABCAdapter) using the dictionary set up in your factory.
 builder.Services.AddScoped<IProductFactoryService, ProductFactoryService>();
