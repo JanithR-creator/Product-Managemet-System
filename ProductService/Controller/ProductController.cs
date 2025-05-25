@@ -34,5 +34,31 @@ namespace ProductService.Controller
 
             return Ok(new { Imported = importedCount });
         }
+
+        [HttpGet("novel")]
+        public async Task<IActionResult> GetAllNovels([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+           var data =await productService.GetAllNovels(page, pageSize);
+
+            return Ok(new
+            {
+                Page = page,
+                PageSize = pageSize,
+                Items = data
+            });
+        }
+
+        [HttpGet("schoolItems")]
+        public async Task<IActionResult> GetAllSclItems([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var data = await productService.GetAllSclItems(page, pageSize);
+
+            return Ok(new
+            {
+                Page = page,
+                PageSize = pageSize,
+                Items = data
+            });
+        }
     }
 }

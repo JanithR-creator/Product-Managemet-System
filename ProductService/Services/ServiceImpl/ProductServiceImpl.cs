@@ -1,6 +1,9 @@
-﻿using ProductService.Data;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ProductService.Data;
 using ProductService.Hanlers;
 using ProductService.Model.Dtos.RequestDtos;
+using ProductService.Model.Dtos.ResponseDtos;
 using ProductService.Model.Entity;
 
 namespace ProductService.Services.ServiceImpl
@@ -61,6 +64,52 @@ namespace ProductService.Services.ServiceImpl
             dbContext.Products.RemoveRange(allProducts);
 
             dbContext.SaveChanges();
+        }
+
+        public async Task<List<NovelResDto>> GetAllNovels(int page, int pageSize)
+        {
+            var query = dbContext.Products
+                .Include(p => p.BookDetails)
+                .Where(p => p.PruductType == "novel");
+
+            var data = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new NovelResDto
+                {
+                    ProductId = p.ProductId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Quantity = p.Quantity,
+                    Author = p.BookDetails!.Author,
+                    Publisher = p.BookDetails.Publisher,
+                    Category = p.BookDetails.Category
+                })
+                .ToListAsync();
+
+            return data;
+        }
+
+        public async Task<List<SchoolItemResDto>> GetAllSclItems(int page, int pageSize)
+        {
+            var query = dbContext.Products
+                .Where(p => p.PruductType == "school item");
+
+            var data = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new SchoolItemResDto
+                {
+                    ProductId = p.ProductId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Quantity = p.Quantity
+                })
+                .ToListAsync();
+
+            return data;
         }
     }
 }
