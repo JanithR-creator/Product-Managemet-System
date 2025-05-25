@@ -24,7 +24,7 @@ namespace AdapterService.Services.AdapterService.Adapters
 
             var internalProducts = novels.Select(n => new Product
             {
-                Provider = "novel",
+                Provider = "novels provider",
                 Name = n.Name,
                 Description = n.Description,
                 Price = n.Price,

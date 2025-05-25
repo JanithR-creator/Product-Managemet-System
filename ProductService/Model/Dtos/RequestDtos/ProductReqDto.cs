@@ -1,6 +1,6 @@
-﻿namespace ProductService.Model.Dtos
+﻿namespace ProductService.Model.Dtos.RequestDtos
 {
-    public class ProductDto
+    public class ProductReqDto
     {
         public string Provider { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
