@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProductService.Data;
-using ProductService.Model.Dtos;
-using ProductService.Model.Entity;
+using ProductService.Model.Dtos.RequestDtos;
+using ProductService.Services;
 
 namespace ProductService.Controller
 {
@@ -9,62 +8,31 @@ namespace ProductService.Controller
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly AppDbContext dbContext;
+        private readonly IProductService productService;
 
-        public ProductController(AppDbContext dbContext)
+        public ProductController(IProductService productService)
         {
-            this.dbContext = dbContext;
+            this.productService = productService;
         }
 
-        [HttpGet]
-        public IActionResult Get()
+        [HttpDelete]
+        public IActionResult DeleteAllProducts() 
         {
-            return Ok(dbContext.Products.ToList());
+            productService.DeleteAllProducts();
+            return Ok("All Products Successfully Deleted.");        
         }
 
         [HttpPost("import")]
-        public async Task<IActionResult> ImportFromAdapter([FromQuery] string provider = "abc")
+        public async Task<IActionResult> ImportFromAdapter([FromQuery] string provider)
         {
-            using var httpClient = new HttpClient();
-            var adapterUrl = $"http://adapterservice:80/api/ProductAdapter?provider={provider}"; // service name in Docker
 
-            var products = await httpClient.GetFromJsonAsync<List<ProductDto>>(adapterUrl);
 
-            if (products == null || !products.Any())
-                return BadRequest("No products returned.");
+            var importedCount = await productService.SaveProducts(provider);
 
-            var baseProducts = products.Select(p =>new Product
-            {
-                Provider = p.Provider,
-                Name = p.Name, 
-                Description = p.Description,
-                Price = p.Price,
-                Quantity = p.Quantity,
-                PruductType = p.PruductType
-            }).ToList();
+            if (importedCount == 0)
+                return BadRequest("No products returned from adapter.");
 
-            dbContext.Products.AddRange(baseProducts); //Add multiple entities efficiently
-            await dbContext.SaveChangesAsync(); //freeing up the thread while waiting for DB
-
-            foreach (var product in products)
-            {
-                var insertProduct = baseProducts.First(p=>p.Name == product.Name);
-
-                if (product.PruductType == "novel")
-                {
-                    dbContext.BookDetails.Add(new BookDetails
-                    {
-                        ProductId = insertProduct.ProductId,
-                        Author = product.Author,
-                        Publisher = product.Publisher,
-                        Category = product.Category
-                    });
-                }
-            }
-
-            await dbContext.SaveChangesAsync();
-
-            return Ok(new { Imported = products.Count });
+            return Ok(new { Imported = importedCount });
         }
     }
 }

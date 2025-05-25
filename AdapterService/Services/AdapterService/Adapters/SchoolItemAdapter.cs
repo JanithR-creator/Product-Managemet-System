@@ -5,7 +5,7 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
 {
     public class SchoolItemAdapter:IProductAdapter
     {
-        public string AdapterKey => "abc";
+        public string AdapterKey => "school item";
 
         private readonly HttpClient httpClient;
 
@@ -29,7 +29,7 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
                 Price = p.Price,
                 Quantity = p.Quantity,
                 PruductType="school item",
-                Provider="abc"
+                Provider= "school items provider"
             }).ToList();
 
             return internalProduct;
