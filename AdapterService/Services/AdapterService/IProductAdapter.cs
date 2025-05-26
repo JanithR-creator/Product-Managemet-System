@@ -6,5 +6,7 @@ namespace AdapterService.Services.AdapterService
     {
         string AdapterKey { get; }
         Task<List<Product>> GetProductsAsync();
+
+        Task<bool> AddToCart(CartReqDto dto);
     }
 }

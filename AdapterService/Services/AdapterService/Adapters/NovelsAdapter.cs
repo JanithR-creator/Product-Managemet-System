@@ -37,5 +37,10 @@ namespace AdapterService.Services.AdapterService.Adapters
 
             return internalProducts;
         }
+
+        public Task<bool> AddToCart(CartReqDto dto)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

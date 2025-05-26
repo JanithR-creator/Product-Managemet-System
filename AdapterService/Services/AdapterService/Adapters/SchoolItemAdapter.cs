@@ -34,5 +34,21 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
 
             return internalProduct;
         }
+
+        public async Task<bool> AddToCart(CartReqDto dto)
+        {
+            var externalUrl = "http://host.docker.internal:5000/add-to-cart";
+
+            var payload = new 
+            {
+                userId = dto.UserId,
+                productId = dto.ProductId,
+                quantity = dto.Quantity
+            };
+
+            var response = await httpClient.PostAsJsonAsync(externalUrl, payload);
+
+            return response.IsSuccessStatusCode;
+        }
     }
 }
