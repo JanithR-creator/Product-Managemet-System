@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Common.Events;
 using Microsoft.EntityFrameworkCore;
 using ProductService.Data;
 using ProductService.Hanlers;
@@ -30,6 +30,7 @@ namespace ProductService.Services.ServiceImpl
 
             var baseProducts = products.Select(p => new Product
             {
+                ExternalDbId = p.ProductId,
                 Provider = p.Provider,
                 Name = p.Name,
                 Description = p.Description,
@@ -53,6 +54,40 @@ namespace ProductService.Services.ServiceImpl
             }
 
             return products.Count;
+        }
+
+        private async Task<bool> AdapterCartHandle(string provider, CartReqDto dto)
+        {
+            using var httpClient = new HttpClient();
+            var adapterUrl = $"http://adapterservice:80/api/ProductAdapter?provider={provider}";
+
+            var response = await httpClient.PostAsJsonAsync(adapterUrl, dto);
+
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> ReserveProductStockAsync(ProductReserveEvent @event)
+        {
+            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
+
+            if (product != null && product.Quantity >= @event.Quantity)
+            {
+                product.Quantity -= @event.Quantity;
+                await dbContext.SaveChangesAsync();
+
+                var cartReqDto = new CartReqDto()
+                {
+                    ProductId = product.ExternalDbId,
+                    Quantity = @event.Quantity,
+                    UserId = @event.UserId
+                };
+
+                var response = await AdapterCartHandle(@event.Provider, cartReqDto);
+
+                return true;
+            }
+
+            return false;
         }
 
         public void DeleteAllProducts()

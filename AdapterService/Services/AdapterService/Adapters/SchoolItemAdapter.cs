@@ -24,6 +24,7 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
 
             var internalProduct = externalProducts.Select(p =>new Product
             {
+                ProductId = p.ProductId,
                 Name = p.Name,
                 Description = p.Description,
                 Price = p.Price,

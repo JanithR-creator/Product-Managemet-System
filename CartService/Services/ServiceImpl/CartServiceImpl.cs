@@ -2,6 +2,7 @@
 using CartService.Messaging;
 using CartService.Models.Dtos.RequestDtos;
 using CartService.Models.Enitity;
+using Common.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartService.Services.ServiceImpl
@@ -17,7 +18,7 @@ namespace CartService.Services.ServiceImpl
             this.eventPublisher = eventPublisher;
         }
 
-        public async Task AddItemToCart(CartItemReqDto dto)
+        public async Task AddItemToCart(CartItemReqDto dto, string provider)
         {
             var cart = await dbContext.Carts
                 .Include(c => c.Items)
@@ -40,7 +41,15 @@ namespace CartService.Services.ServiceImpl
 
             await dbContext.SaveChangesAsync();
 
-            eventPublisher.PublishProductReserveEvent(dto.ProductId, dto.Quantity);
+            var @event = new ProductReserveEvent
+            {
+                ProductId = dto.ProductId,
+                Quantity = dto.Quantity,
+                UserId = dto.UserId,
+                Provider = provider
+            };
+
+            eventPublisher.PublishProductReserveEvent(@event);
         }
     }
 

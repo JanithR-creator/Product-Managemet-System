@@ -14,7 +14,7 @@ namespace CartService.Messaging
             this.config = config;
         }
 
-        public void PublishProductReserveEvent(Guid productId, int quantity)
+        public void PublishProductReserveEvent(ProductReserveEvent @event)
         {
             var factory = new ConnectionFactory()
             {
@@ -27,8 +27,7 @@ namespace CartService.Messaging
 
             channel.QueueDeclare(queue: "product.reserve", durable: true, exclusive: false, autoDelete: false);
 
-            var evt = new ProductReserveEvent { ProductId = productId, Quantity = quantity };
-            var message = JsonSerializer.Serialize(evt);
+            var message = JsonSerializer.Serialize(@event);
             var body = Encoding.UTF8.GetBytes(message);
 
             channel.BasicPublish(exchange: "", routingKey: "product.reserve", basicProperties: null, body: body);

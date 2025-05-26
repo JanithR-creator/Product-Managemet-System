@@ -16,9 +16,9 @@ namespace CartService.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddToCart([FromBody] CartItemReqDto dto)
+        public async Task<IActionResult> AddToCart([FromQuery] string provider,[FromBody] CartItemReqDto dto)
         {
-            await cartService.AddItemToCart(dto);
+            await cartService.AddItemToCart(dto, provider);
             return Ok("Item added to cart and event published.");
         }
     }

@@ -4,6 +4,6 @@ namespace CartService.Services
 {
     public interface ICartService
     {
-        Task AddItemToCart(CartItemReqDto dto);
+        Task AddItemToCart(CartItemReqDto dto, string provider);
     }
 }

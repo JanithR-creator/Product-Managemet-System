@@ -1,6 +1,5 @@
 ﻿using Common.Events;
-using Microsoft.EntityFrameworkCore;
-using ProductService.Data;
+using ProductService.Services;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -46,15 +45,12 @@ namespace ProductService.Messaging
                     if (evt != null)
                     {
                         using var scope = serviceProvider.CreateScope();
-                        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
 
-                        var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == evt.ProductId);
+                        var success = await productService.ReserveProductStockAsync(evt);
 
-                        if (product != null && product.Quantity >= evt.Quantity)
+                        if (success)
                         {
-                            product.Quantity -= evt.Quantity;
-                            await dbContext.SaveChangesAsync();
-
                             Console.WriteLine($"[✓] Reserved product {evt.ProductId} (Qty {evt.Quantity})");
                         }
                         else

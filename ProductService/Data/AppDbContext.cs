@@ -14,6 +14,7 @@ namespace ProductService.Data
             modelBuilder.Entity<Product>(productE =>
             {
                 productE.HasKey(productE => productE.ProductId);
+                productE.Property(productE=>productE.ExternalDbId).IsRequired();
                 productE.Property(productE=>productE.Provider).IsRequired();
                 productE.Property(productE=>productE.Name).IsRequired();
                 productE.Property(productE=>productE.Description).IsRequired();

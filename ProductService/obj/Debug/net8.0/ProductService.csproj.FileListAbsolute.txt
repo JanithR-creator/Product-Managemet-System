@@ -169,4 +169,4 @@ D:\Web api\MicroService\MicroServicesSolution\ProductService\bin\Debug\net8.0\ap
 D:\Web api\MicroService\MicroServicesSolution\ProductService\bin\Debug\net8.0\Common.Events.dll
 D:\Web api\MicroService\MicroServicesSolution\ProductService\bin\Debug\net8.0\Common.Events.pdb
 D:\Web api\MicroService\MicroServicesSolution\ProductService\obj\Debug\net8.0\ProductService.sourcelink.json
-D:\Web api\MicroService\MicroServicesSolution\ProductService\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+D:\Web api\MicroService\MicroServicesSolution\ProductService\bin\Debug\net8.0\RabbitMQ.Client.dll
