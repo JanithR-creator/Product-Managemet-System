@@ -32,5 +32,25 @@ namespace CartService.Messaging
 
             channel.BasicPublish(exchange: "", routingKey: "product.reserve", basicProperties: null, body: body);
         }
+
+        public void PublishProductRestoreEvent(ProductRestoreEvent @event)
+        {
+            var factory = new ConnectionFactory()
+            {
+                HostName = config["RabbitMQ:Host"] ?? "rabbitmq",
+                Port = 5672
+            };
+
+            using var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
+
+            channel.QueueDeclare(queue: "product.restore", durable: true, exclusive: false, autoDelete: false);
+
+            var message = JsonSerializer.Serialize(@event);
+            var body = Encoding.UTF8.GetBytes(message);
+
+            channel.BasicPublish(exchange: "", routingKey: "product.restore", basicProperties: null, body: body);
+        }
+
     }
 }

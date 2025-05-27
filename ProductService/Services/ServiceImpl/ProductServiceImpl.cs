@@ -90,6 +90,17 @@ namespace ProductService.Services.ServiceImpl
             return false;
         }
 
+        public async Task RestoreProductStockAsync(ProductRestoreEvent @event)
+        {
+            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
+            if (product != null)
+            {
+                product.Quantity += @event.Quantity;
+                await dbContext.SaveChangesAsync();
+            }
+        }
+
+
         public void DeleteAllProducts()
         {
             var allBookDetails = dbContext.BookDetails.ToList();

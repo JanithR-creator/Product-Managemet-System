@@ -51,6 +51,31 @@ namespace CartService.Services.ServiceImpl
 
             eventPublisher.PublishProductReserveEvent(@event);
         }
+
+        public async Task RemoveItemFromCart(Guid cartItemId, string provider)
+        {
+            var item = await dbContext.CartItems
+                .Include(i => i.Cart) // include Cart to access UserId
+                .FirstOrDefaultAsync(i => i.CartItemId == cartItemId);
+
+            if (item == null)
+            {
+                throw new EntryPointNotFoundException("Item not found.");
+            }
+
+            var restoreEvent = new ProductRestoreEvent
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                UserId = item.Cart.UserId,
+                Provider = provider
+            };
+
+            dbContext.CartItems.Remove(item);
+            await dbContext.SaveChangesAsync();
+
+            eventPublisher.PublishProductRestoreEvent(restoreEvent);
+        }
     }
 
 }

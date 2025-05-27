@@ -16,10 +16,17 @@ namespace CartService.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddToCart([FromQuery] string provider,[FromBody] CartItemReqDto dto)
+        public async Task<IActionResult> AddToCart([FromQuery] string provider, [FromBody] CartItemReqDto dto)
         {
             await cartService.AddItemToCart(dto, provider);
             return Ok("Item added to cart and event published.");
+        }
+
+        [HttpDelete("remove")]
+        public async Task<IActionResult> RemoveFromCart([FromQuery] string provider, [FromBody] Guid CartItemID)
+        {
+            await cartService.RemoveItemFromCart(CartItemID, provider);
+            return Ok("Item removed from cart and event published.");
         }
     }
 }

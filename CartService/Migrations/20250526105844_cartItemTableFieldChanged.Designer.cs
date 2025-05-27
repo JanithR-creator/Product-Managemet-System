@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CartService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250525081914_initial")]
-    partial class initial
+    [Migration("20250526105844_cartItemTableFieldChanged")]
+    partial class cartItemTableFieldChanged
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
