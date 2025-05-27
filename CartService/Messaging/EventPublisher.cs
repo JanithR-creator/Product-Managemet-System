@@ -14,7 +14,7 @@ namespace CartService.Messaging
             this.config = config;
         }
 
-        public void PublishProductReserveEvent(ProductReserveEvent @event)
+        public void PublishProductReserveEvent(ProductCommonEventDto @event)
         {
             var factory = new ConnectionFactory()
             {
@@ -33,7 +33,7 @@ namespace CartService.Messaging
             channel.BasicPublish(exchange: "", routingKey: "product.reserve", basicProperties: null, body: body);
         }
 
-        public void PublishProductRestoreEvent(ProductRestoreEvent @event)
+        public void PublishProductRestoreEvent(ProductCommonEventDto @event)
         {
             var factory = new ConnectionFactory()
             {

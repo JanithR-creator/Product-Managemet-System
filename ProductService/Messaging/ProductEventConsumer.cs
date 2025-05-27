@@ -43,7 +43,7 @@ namespace ProductService.Messaging
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
 
-                    var evt = JsonSerializer.Deserialize<ProductReserveEvent>(message);
+                    var evt = JsonSerializer.Deserialize<ProductCommonEventDto>(message);
 
                     if (evt != null)
                     {
@@ -72,7 +72,7 @@ namespace ProductService.Messaging
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
 
-                    var evt = JsonSerializer.Deserialize<ProductRestoreEvent>(message);
+                    var evt = JsonSerializer.Deserialize<ProductCommonEventDto>(message);
 
                     if (evt != null)
                     {

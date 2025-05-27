@@ -41,7 +41,7 @@ namespace CartService.Services.ServiceImpl
 
             await dbContext.SaveChangesAsync();
 
-            var @event = new ProductReserveEvent
+            var @event = new ProductCommonEventDto
             {
                 ProductId = dto.ProductId,
                 Quantity = dto.Quantity,
@@ -63,7 +63,7 @@ namespace CartService.Services.ServiceImpl
                 throw new EntryPointNotFoundException("Item not found.");
             }
 
-            var restoreEvent = new ProductRestoreEvent
+            var restoreEvent = new ProductCommonEventDto
             {
                 ProductId = item.ProductId,
                 Quantity = item.Quantity,
@@ -75,6 +75,38 @@ namespace CartService.Services.ServiceImpl
             await dbContext.SaveChangesAsync();
 
             eventPublisher.PublishProductRestoreEvent(restoreEvent);
+        }
+
+        public async Task UpdateCartItem(CartItemUpdateReqDto dto, string provider)
+        {
+            var item = await dbContext.CartItems
+                .Include(i => i.Cart)
+                .FirstOrDefaultAsync(i => i.CartItemId == dto.CartItemId);
+
+            if (item == null) { throw new EntryPointNotFoundException("Item not found."); }
+
+            if (dto.Quantity <= 0)
+            {
+                RemoveItemFromCart(item.CartItemId, provider).Wait();
+            }
+            else
+            {
+                int changeQuantity = item.Quantity - dto.Quantity;
+
+                item.Quantity = dto.Quantity;
+                dbContext.CartItems.Update(item);
+
+                var restoreEvent = new ProductCommonEventDto
+                {
+                    ProductId = item.ProductId,
+                    Quantity = changeQuantity,
+                    UserId = item.Cart.UserId,
+                    Provider = provider
+                };
+                await dbContext.SaveChangesAsync();
+
+                eventPublisher.PublishProductRestoreEvent(restoreEvent);
+            }
         }
     }
 

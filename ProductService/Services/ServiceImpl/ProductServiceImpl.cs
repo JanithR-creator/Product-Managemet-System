@@ -66,7 +66,7 @@ namespace ProductService.Services.ServiceImpl
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> ReserveProductStockAsync(ProductReserveEvent @event)
+        public async Task<bool> ReserveProductStockAsync(ProductCommonEventDto @event)
         {
             var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
 
@@ -90,7 +90,7 @@ namespace ProductService.Services.ServiceImpl
             return false;
         }
 
-        public async Task RestoreProductStockAsync(ProductRestoreEvent @event)
+        public async Task RestoreProductStockAsync(ProductCommonEventDto @event)
         {
             var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
             if (product != null)
@@ -99,7 +99,6 @@ namespace ProductService.Services.ServiceImpl
                 await dbContext.SaveChangesAsync();
             }
         }
-
 
         public void DeleteAllProducts()
         {

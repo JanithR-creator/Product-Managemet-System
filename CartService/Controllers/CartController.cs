@@ -28,5 +28,12 @@ namespace CartService.Controllers
             await cartService.RemoveItemFromCart(CartItemID, provider);
             return Ok("Item removed from cart and event published.");
         }
+
+        [HttpPatch("update")]
+        public async Task<IActionResult> UpdateCartItem([FromQuery] string provider, [FromBody] CartItemUpdateReqDto dto)
+        {
+            await cartService.UpdateCartItem(dto, provider);
+            return Ok("Cart item updated and event published.");
+        }
     }
 }

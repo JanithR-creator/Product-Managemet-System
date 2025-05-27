@@ -1,4 +1,5 @@
 ﻿using CartService.Models.Dtos.RequestDtos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CartService.Services
 {
@@ -6,5 +7,6 @@ namespace CartService.Services
     {
         Task AddItemToCart(CartItemReqDto dto, string provider);
         Task RemoveItemFromCart(Guid cartItemId, string provider);
+        Task UpdateCartItem(CartItemUpdateReqDto dto, string provider);
     }
 }
