@@ -24,6 +24,10 @@ namespace CartService.Data
                 item.Property(cart => cart.ProductId).IsRequired();
                 item.Property(cart => cart.Quantity).IsRequired();
                 item.Property(cart => cart.CartId).IsRequired();
+                item.Property(cart => cart.UnitPrice).HasColumnType("decimal(18,2)").IsRequired();
+                item.Property(cart => cart.AddedDate).IsRequired().HasDefaultValueSql("GETDATE()");
+                item.Property(cart => cart.ProductName).IsRequired().HasMaxLength(100);
+                item.Property(cart => cart.ProductDescription).HasMaxLength(500);
 
                 item.HasOne(item => item.Cart)
                 .WithMany(cart => cart.Items)

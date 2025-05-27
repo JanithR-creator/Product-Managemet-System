@@ -35,5 +35,19 @@ namespace CartService.Controllers
             await cartService.UpdateCartItem(dto, provider);
             return Ok("Cart item updated and event published.");
         }
+
+        [HttpGet("getItemsByUserId")]
+        public async Task<IActionResult> GetCartItems([FromQuery] Guid userId)
+        {
+            var items = await cartService.GetCartItems(userId);
+            return Ok(items);
+        }
+
+        [HttpGet("getAll")]
+        public async Task<IActionResult> GetAllCartItems()
+        {
+            var items = await cartService.GetAllCartItems();
+            return Ok(items);
+        }
     }
 }

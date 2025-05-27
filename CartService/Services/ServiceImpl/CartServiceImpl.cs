@@ -1,6 +1,7 @@
 ﻿using CartService.Data;
 using CartService.Messaging;
 using CartService.Models.Dtos.RequestDtos;
+using CartService.Models.Dtos.ResponseDtos;
 using CartService.Models.Enitity;
 using Common.Events;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,11 @@ namespace CartService.Services.ServiceImpl
             cart.Items.Add(new CartItem
             {
                 ProductId = dto.ProductId,
-                Quantity = dto.Quantity
+                Quantity = dto.Quantity,
+                UnitPrice = dto.UnitPrice,
+                AddedDate = DateTime.UtcNow,
+                ProductName = dto.ProductName,
+                ProductDescription = dto.ProductDescription
             });
 
             await dbContext.SaveChangesAsync();
@@ -107,6 +112,49 @@ namespace CartService.Services.ServiceImpl
 
                 eventPublisher.PublishProductRestoreEvent(restoreEvent);
             }
+        }
+
+        public async Task<List<CartItemGetResDto>> GetCartItems(Guid userId)
+        {
+            var cart = await dbContext.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+            if (cart == null || !cart.Items.Any())
+            {
+                return new List<CartItemGetResDto>();
+            }
+            return cart.Items.Select(i => new CartItemGetResDto
+            {
+                CartItemId = i.CartItemId,
+                ProductId = i.ProductId,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice,
+                AddedDate = i.AddedDate,
+                ProductName = i.ProductName,
+                ProductDescription = i.ProductDescription
+            }).ToList();
+        }
+
+        public async Task<List<CartDetailsResDto>> GetAllCartItems()
+        {
+            var carts = await dbContext.Carts
+                .Include(c => c.Items)
+                .ToListAsync();
+            return carts.Select(c => new CartDetailsResDto
+            {
+                CartId = c.CartId,
+                UserId = c.UserId,
+                Items = c.Items.Select(i => new CartItemGetResDto
+                {
+                    CartItemId = i.CartItemId,
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    AddedDate = i.AddedDate,
+                    ProductName = i.ProductName,
+                    ProductDescription = i.ProductDescription
+                }).ToList()
+            }).ToList();
         }
     }
 
