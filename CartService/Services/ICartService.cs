@@ -1,6 +1,5 @@
 ﻿using CartService.Models.Dtos.RequestDtos;
 using CartService.Models.Dtos.ResponseDtos;
-using Microsoft.AspNetCore.Mvc;
 
 namespace CartService.Services
 {

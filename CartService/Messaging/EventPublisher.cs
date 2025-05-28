@@ -52,5 +52,24 @@ namespace CartService.Messaging
             channel.BasicPublish(exchange: "", routingKey: "product.restore", basicProperties: null, body: body);
         }
 
+        public void PublishProductUpdateEvent(ProductCommonEventUpdateDto @event)
+        {
+            var factory = new ConnectionFactory()
+            {
+                HostName = config["RabbitMQ:Host"] ?? "rabbitmq",
+                Port = 5672
+            };
+
+            using var connection = factory.CreateConnection();
+            using var channel = connection.CreateModel();
+
+            channel.QueueDeclare(queue: "product.update", durable: true, exclusive: false, autoDelete: false);
+
+            var message = JsonSerializer.Serialize(@event);
+            var body = Encoding.UTF8.GetBytes(message);
+
+            channel.BasicPublish(exchange: "", routingKey: "product.update", basicProperties: null, body: body);
+        }
+
     }
 }

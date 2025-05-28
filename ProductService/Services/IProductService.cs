@@ -7,7 +7,8 @@ namespace ProductService.Services
     {
         Task<int> SaveProducts(string provider);
         Task<bool> ReserveProductStockAsync(ProductCommonEventDto @event);
-        Task RestoreProductStockAsync(ProductCommonEventDto @event);
+        Task<bool> RestoreProductStockAsync(ProductCommonEventDto @event);
+        Task<bool> UpdateProductStockAsync(ProductCommonEventUpdateDto @event);
         Task<List<NovelResDto>> GetAllNovels(int page, int pageSize);
         Task<List<SchoolItemResDto>> GetAllSclItems(int page, int pageSize);
         void DeleteAllProducts();

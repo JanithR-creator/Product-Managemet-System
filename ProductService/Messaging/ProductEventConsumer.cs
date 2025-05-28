@@ -29,12 +29,14 @@ namespace ProductService.Messaging
             //declare queues
             channel.QueueDeclare(queue: "product.reserve", durable: true, exclusive: false, autoDelete: false);
             channel.QueueDeclare(queue: "product.restore", durable: true, exclusive: false, autoDelete: false);
+            channel.QueueDeclare(queue: "product.update", durable: true, exclusive: false, autoDelete: false);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var consumer = new EventingBasicConsumer(channel);
             var restoreConsumer = new EventingBasicConsumer(channel);
+            var updateConsumer = new EventingBasicConsumer(channel);
 
             consumer.Received += (model, ea) =>
             {
@@ -79,13 +81,49 @@ namespace ProductService.Messaging
                         using var scope = serviceProvider.CreateScope();
                         var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
 
-                        await productService.RestoreProductStockAsync(evt);
+                        bool status = await productService.RestoreProductStockAsync(evt);
 
-                        Console.WriteLine($"[✓] Restored stock for product {evt.ProductId} (Qty {evt.Quantity})");
+                        if (status) 
+                        {
+                         Console.WriteLine($"[✓] Restored stock for product {evt.ProductId} (Qty {evt.Quantity})");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[X] Failed to restore stock for product {evt.ProductId}");
+                        }
                     }
                 });
             };
             channel.BasicConsume(queue: "product.restore", autoAck: true, consumer: restoreConsumer);
+
+            updateConsumer.Received += (model, ea) =>
+            {
+                Task.Run(async () =>
+                {
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+
+                    var evt = JsonSerializer.Deserialize<ProductCommonEventUpdateDto>(message);
+
+                    if (evt != null)
+                    {
+                        using var scope = serviceProvider.CreateScope();
+                        var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
+
+                        bool status = await productService.UpdateProductStockAsync(evt);
+
+                        if (status)
+                        {
+                            Console.WriteLine($"[✓] Update stock for product {evt.ProductId} (Qty {evt.Quantity})");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[X] Failed to update stock for product {evt.ProductId}");
+                        }
+                    }
+                });
+            };
+            channel.BasicConsume(queue: "product.update", autoAck: true, consumer: updateConsumer);
 
             return Task.CompletedTask;
         }

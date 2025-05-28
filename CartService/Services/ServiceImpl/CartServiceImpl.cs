@@ -101,16 +101,17 @@ namespace CartService.Services.ServiceImpl
                 item.Quantity = dto.Quantity;
                 dbContext.CartItems.Update(item);
 
-                var restoreEvent = new ProductCommonEventDto
+                var updateEvent = new ProductCommonEventUpdateDto
                 {
                     ProductId = item.ProductId,
-                    Quantity = changeQuantity,
+                    ChangeQuantity = changeQuantity,
+                    Quantity = dto.Quantity,
                     UserId = item.Cart.UserId,
                     Provider = provider
                 };
                 await dbContext.SaveChangesAsync();
 
-                eventPublisher.PublishProductRestoreEvent(restoreEvent);
+                eventPublisher.PublishProductUpdateEvent(updateEvent);
             }
         }
 

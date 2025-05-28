@@ -1,5 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
+using ProductService.AdapterEndPointController;
+using ProductService.AdapterEndPointController.Impl;
 using ProductService.Data;
 using ProductService.Handlers.HandlerImpl;
 using ProductService.Hanlers;
@@ -28,6 +30,7 @@ namespace ProductService
 
             builder.Services.AddScoped<IProductService, ProductServiceImpl>();
             builder.Services.AddScoped<IProductTypeHandler, NovelProductHandler>();
+            builder.Services.AddScoped<IAdapterEnpointHandler, AdapterEndpointHandler>();
 
             builder.Services.AddHostedService<ProductEventConsumer>();
 
