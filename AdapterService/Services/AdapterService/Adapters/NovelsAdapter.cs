@@ -20,10 +20,11 @@ namespace AdapterService.Services.AdapterService.Adapters
 
             var novels = await httpClient.GetFromJsonAsync<List<NovelsDto>>(url);
 
-            if(novels == null) return new List<Product>();
+            if (novels == null) return new List<Product>();
 
             var internalProducts = novels.Select(n => new Product
             {
+                ProductId = n.ProductId,
                 Provider = "novels provider",
                 Name = n.Name,
                 Description = n.Description,
@@ -36,6 +37,21 @@ namespace AdapterService.Services.AdapterService.Adapters
             }).ToList();
 
             return internalProducts;
+        }
+
+        public async Task<bool> AddToCartAsync(CartReqDto dto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> RemoveFromCartAsync(ItemRemoveReqDto dto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> UpdateItemAsync(CartReqDto dto)
+        {
+            throw new NotImplementedException();
         }
     }
 }

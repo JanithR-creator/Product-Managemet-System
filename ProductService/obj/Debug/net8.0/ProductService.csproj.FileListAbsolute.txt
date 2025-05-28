@@ -166,3 +166,7 @@ D:\Web api\MicroService\MicroServicesSolution\ProductService\obj\Debug\net8.0\Pr
 D:\Web api\MicroService\MicroServicesSolution\ProductService\obj\Debug\net8.0\ProductService.genruntimeconfig.cache
 D:\Web api\MicroService\MicroServicesSolution\ProductService\obj\Debug\net8.0\ref\ProductService.dll
 D:\Web api\MicroService\MicroServicesSolution\ProductService\bin\Debug\net8.0\appsettings.Docker.json
+D:\Web api\MicroService\MicroServicesSolution\ProductService\bin\Debug\net8.0\Common.Events.dll
+D:\Web api\MicroService\MicroServicesSolution\ProductService\bin\Debug\net8.0\Common.Events.pdb
+D:\Web api\MicroService\MicroServicesSolution\ProductService\obj\Debug\net8.0\ProductService.sourcelink.json
+D:\Web api\MicroService\MicroServicesSolution\ProductService\bin\Debug\net8.0\RabbitMQ.Client.dll

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AdapterService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f2f65b377552f1afeb1d89b9b7b95ce719a414e5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0d14ff3cb1aca02bdf15755f3ac228e1b3846266")]
 [assembly: System.Reflection.AssemblyProductAttribute("AdapterService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AdapterService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

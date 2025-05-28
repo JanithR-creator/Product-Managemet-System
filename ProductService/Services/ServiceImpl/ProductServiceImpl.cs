@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Common.Events;
 using Microsoft.EntityFrameworkCore;
+using ProductService.AdapterEndPointController;
 using ProductService.Data;
 using ProductService.Hanlers;
 using ProductService.Model.Dtos.RequestDtos;
@@ -12,10 +13,12 @@ namespace ProductService.Services.ServiceImpl
     {
         private readonly AppDbContext dbContext;
         private readonly IEnumerable<IProductTypeHandler> handlers;
-        public ProductServiceImpl(AppDbContext dbContext, IEnumerable<IProductTypeHandler> handlers)
+        private readonly IAdapterEnpointHandler adapterEnpointController;
+        public ProductServiceImpl(AppDbContext dbContext, IEnumerable<IProductTypeHandler> handlers, IAdapterEnpointHandler adapterEnpointController)
         {
             this.dbContext = dbContext;
             this.handlers = handlers;
+            this.adapterEnpointController = adapterEnpointController;
         }
 
         public async Task<int> SaveProducts(string provider)
@@ -30,6 +33,7 @@ namespace ProductService.Services.ServiceImpl
 
             var baseProducts = products.Select(p => new Product
             {
+                ExternalDbId = p.ProductId,
                 Provider = p.Provider,
                 Name = p.Name,
                 Description = p.Description,
@@ -53,6 +57,71 @@ namespace ProductService.Services.ServiceImpl
             }
 
             return products.Count;
+        }
+
+        public async Task<bool> ReserveProductStockAsync(ProductCommonEventDto @event)
+        {
+            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
+
+            if (product != null && product.Quantity >= @event.Quantity)
+            {
+                product.Quantity -= @event.Quantity;
+                await dbContext.SaveChangesAsync();
+
+                var cartReqDto = new CartReqDto()
+                {
+                    ProductId = product.ExternalDbId,
+                    Quantity = @event.Quantity,
+                    UserId = @event.UserId
+                };
+
+                var response = await adapterEnpointController.AddToCartAsync(@event.Provider, cartReqDto);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> RestoreProductStockAsync(ProductCommonEventDto @event)
+        {
+            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
+            if (product != null)
+            {
+                product.Quantity += @event.Quantity;
+                await dbContext.SaveChangesAsync();
+
+                var cartItemRemoveDto = new ExtCartItemRemoveDto()
+                {
+                    ProductId = product.ExternalDbId,
+                    UserId = @event.UserId
+                };
+
+                var response = await adapterEnpointController.RemoveFromCartAsync(@event.Provider, cartItemRemoveDto);
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> UpdateProductStockAsync(ProductCommonEventUpdateDto @event)
+        {
+            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
+            if (product != null)
+            {
+                product.Quantity += @event.ChangeQuantity;
+                await dbContext.SaveChangesAsync();
+
+                var cartItemUpdateDto = new CartReqDto()
+                {
+                    ProductId = product.ExternalDbId,
+                    UserId = @event.UserId,
+                    Quantity = @event.Quantity
+                };
+
+                var response = await adapterEnpointController.UpdateItemAsync(@event.Provider, cartItemUpdateDto);
+                return true;
+            }
+            return false;
         }
 
         public void DeleteAllProducts()

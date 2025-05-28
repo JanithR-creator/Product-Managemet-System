@@ -1,0 +1,12 @@
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\bin\Debug\net8.0\Common.Events.deps.json
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\bin\Debug\net8.0\Common.Events.dll
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\bin\Debug\net8.0\Common.Events.pdb
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\Common.Events.GeneratedMSBuildEditorConfig.editorconfig
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\Common.Events.AssemblyInfoInputs.cache
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\Common.Events.AssemblyInfo.cs
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\Common.Events.csproj.CoreCompileInputs.cache
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\Common.Events.sourcelink.json
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\Common.Events.dll
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\refint\Common.Events.dll
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\Common.Events.pdb
+D:\Web api\MicroService\MicroServicesSolution\Common.Events\obj\Debug\net8.0\ref\Common.Events.dll

@@ -5,6 +5,7 @@ namespace ProductService.Model.Entity
     public class Product
     {
         public Guid ProductId { get; set; }
+        public Guid ExternalDbId { get; set; }
         public string Provider { get; set; }=string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

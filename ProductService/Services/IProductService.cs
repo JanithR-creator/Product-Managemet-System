@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ProductService.Model.Dtos.RequestDtos;
+﻿using Common.Events;
 using ProductService.Model.Dtos.ResponseDtos;
 
 namespace ProductService.Services
@@ -7,10 +6,11 @@ namespace ProductService.Services
     public interface IProductService
     {
         Task<int> SaveProducts(string provider);
-        void DeleteAllProducts();
-
+        Task<bool> ReserveProductStockAsync(ProductCommonEventDto @event);
+        Task<bool> RestoreProductStockAsync(ProductCommonEventDto @event);
+        Task<bool> UpdateProductStockAsync(ProductCommonEventUpdateDto @event);
         Task<List<NovelResDto>> GetAllNovels(int page, int pageSize);
-
         Task<List<SchoolItemResDto>> GetAllSclItems(int page, int pageSize);
+        void DeleteAllProducts();
     }
 }
