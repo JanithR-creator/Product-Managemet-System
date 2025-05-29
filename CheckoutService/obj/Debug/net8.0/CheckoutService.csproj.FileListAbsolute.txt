@@ -161,3 +161,8 @@ D:\Web api\MicroService\MicroServicesSolution\CheckoutService\obj\Debug\net8.0\r
 D:\Web api\MicroService\MicroServicesSolution\CheckoutService\obj\Debug\net8.0\CheckoutService.pdb
 D:\Web api\MicroService\MicroServicesSolution\CheckoutService\obj\Debug\net8.0\CheckoutService.genruntimeconfig.cache
 D:\Web api\MicroService\MicroServicesSolution\CheckoutService\obj\Debug\net8.0\ref\CheckoutService.dll
+D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\Microsoft.OpenApi.dll
+D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+D:\Web api\MicroService\MicroServicesSolution\CheckoutService\obj\Debug\net8.0\CheckoutService.MvcApplicationPartsAssemblyInfo.cs

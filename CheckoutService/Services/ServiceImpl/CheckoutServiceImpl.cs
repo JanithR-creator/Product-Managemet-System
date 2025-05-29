@@ -1,0 +1,113 @@
+﻿using CheckoutService.Data;
+using CheckoutService.Models.Dto.ReqDtos;
+using CheckoutService.Models.Dto.ResDtos;
+using CheckoutService.Models.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace CheckoutService.Services.ServiceImpl
+{
+    public class CheckoutServiceImpl : ICheckoutService
+    {
+        private readonly AppDbContext dbContext;
+
+        public CheckoutServiceImpl(AppDbContext dbContext)
+        {
+            this.dbContext = dbContext;
+        }
+
+        public async Task<CheckoutSuccessResDto> CreateCheckoutAsync(CheckoutReqDto dto)
+        {
+            var checkout = new Checkout
+            {
+                UserId = dto.UserId,
+                CreatedAt = DateTime.UtcNow,
+                Status = "Pending",
+                Items = dto.Items.Select(i => new CheckoutItem
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    ProductName = i.ProductName,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            };
+
+            dbContext.Checkouts.Add(checkout);
+            await dbContext.SaveChangesAsync();
+
+            return (new CheckoutSuccessResDto()
+            {
+                CheckoutId = checkout.CheckoutId,
+                Status = checkout.Status
+            });
+        }
+
+        public async Task<bool> MakePaymentAsync(Guid checkoutId)
+        {
+            var checkout = await dbContext.Checkouts
+               .Include(c => c.Items)
+               .Include(c => c.Payment)
+               .FirstOrDefaultAsync(c => c.CheckoutId == checkoutId);
+
+            if (checkout == null)
+                return false;
+
+            if (checkout.Status == "Completed")
+                return false;
+
+            var totalAmount = checkout.Items.Sum(i => i.Quantity * i.UnitPrice);
+
+            var payment = new PaymentRecord
+            {
+                CheckoutId = checkout.CheckoutId,
+                Amount = totalAmount,
+                Status = "Success",
+                Message = "Payment successfully processed",
+                PaidAt = DateTime.UtcNow
+            };
+
+            checkout.Status = "Completed";
+            checkout.Payment = payment;
+
+            dbContext.PaymentRecords.Add(payment);
+            await dbContext.SaveChangesAsync();
+
+            return true;
+        }
+
+
+        public async Task<CheckoutResDto> GetCheckOutByUserIdAsync(Guid userId)
+        {
+            var checkout = await dbContext.Checkouts
+                .Include(c => c.Items)
+                .Include(c => c.Payment)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (checkout == null)
+            {
+                throw new EntryPointNotFoundException("Checkout Empty.");
+            }
+
+            if (checkout.Payment == null)
+            {
+                throw new InvalidOperationException("Payment record is missing for the checkout.");
+            }
+
+            return new CheckoutResDto()
+            {
+                CheckoutId = checkout.CheckoutId,
+                UserId = userId,
+                PaymentRecordId = checkout.Payment.PaymentRecordId,
+                CheckoutDate = checkout.CreatedAt,
+                PaidDate = checkout.Payment.PaidAt,
+                CheckoutStatus = checkout.Status,
+                Amount = checkout.Payment.Amount,
+                PaymentStatus = checkout.Payment.Status
+            };
+        }
+
+        public Task<List<CheckoutResDto>> GetCheckoutsAsync()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

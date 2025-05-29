@@ -43,7 +43,7 @@ namespace CheckoutService.Data
                 payment.Property(p => p.CheckoutId).IsRequired();
                 payment.Property(p => p.Amount).HasColumnType("decimal(18,2)").IsRequired();
                 payment.Property(p => p.Status).IsRequired().HasMaxLength(20);
-                payment.Property(p => p.Message).IsRequired().HasMaxLength(20);
+                payment.Property(p => p.Message).IsRequired().HasMaxLength(100);
                 payment.Property(p => p.PaidAt).IsRequired().HasDefaultValueSql("GETDATE()");
 
                 payment.HasOne(p => p.Checkout)
