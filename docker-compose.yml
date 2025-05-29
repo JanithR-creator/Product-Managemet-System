@@ -61,6 +61,20 @@ services:
            - microservicessolution-network
         environment:
            - ASPNETCORE_ENVIRONMENT=Docker
+
+    checkoutservice:
+        build: 
+            context: .
+            dockerfile: CheckoutService/Dockerfile
+        container_name: CheckoutService
+        ports:
+           - "5004:80"
+        depends_on:
+           - sqlserver
+        networks:
+           - microservicessolution-network
+        environment:
+           - ASPNETCORE_ENVIRONMENT=Docker
     
 
 networks:
