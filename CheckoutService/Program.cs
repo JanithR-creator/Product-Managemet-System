@@ -1,4 +1,5 @@
 using CheckoutService.Data;
+using CheckoutService.Messaging;
 using CheckoutService.Services;
 using CheckoutService.Services.ServiceImpl;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<ICheckoutService, CheckoutServiceImpl>();
+builder.Services.AddScoped<CheckoutEventPublisher>();
 
 builder.Services.AddDbContext<AppDbContext>(
                 options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

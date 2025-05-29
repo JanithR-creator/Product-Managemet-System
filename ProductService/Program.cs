@@ -32,7 +32,7 @@ namespace ProductService
             builder.Services.AddScoped<IProductTypeHandler, NovelProductHandler>();
             builder.Services.AddScoped<IAdapterEnpointHandler, AdapterEndpointHandler>();
 
-            builder.Services.AddHostedService<ProductEventConsumer>();
+            builder.Services.AddHostedService<CartEventConsumer>();
 
             builder.Services.AddDbContext<AppDbContext>(
                 options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

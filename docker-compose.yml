@@ -71,6 +71,7 @@ services:
            - "5004:80"
         depends_on:
            - sqlserver
+           - rabbitmq
         networks:
            - microservicessolution-network
         environment:

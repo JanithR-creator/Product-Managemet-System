@@ -7,13 +7,13 @@ using System.Text.Json;
 
 namespace ProductService.Messaging
 {
-    public class ProductEventConsumer : BackgroundService
+    public class CartEventConsumer : BackgroundService
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IConnection connection;
         private readonly IModel channel;
 
-        public ProductEventConsumer(IServiceProvider serviceProvider)
+        public CartEventConsumer(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
 

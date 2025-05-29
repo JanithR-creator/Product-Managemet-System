@@ -11,9 +11,9 @@ namespace CartService.Services.ServiceImpl
     public class CartServiceImpl : ICartService
     {
         private readonly AppDbContext dbContext;
-        private readonly EventPublisher eventPublisher;
+        private readonly CartEventPublisher eventPublisher;
 
-        public CartServiceImpl(AppDbContext dbContext, EventPublisher eventPublisher)
+        public CartServiceImpl(AppDbContext dbContext, CartEventPublisher eventPublisher)
         {
             this.dbContext = dbContext;
             this.eventPublisher = eventPublisher;
@@ -156,6 +156,26 @@ namespace CartService.Services.ServiceImpl
                     ProductDescription = i.ProductDescription
                 }).ToList()
             }).ToList();
+        }
+
+        public async Task<bool> Checkout(CheckoutEventDto @event)
+        {
+            var cart = await dbContext.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == @event.UserId);
+
+            if (cart == null)
+            {
+                return false;
+            }
+
+            var items = cart.Items.ToList();
+
+            dbContext.CartItems.RemoveRange(items);
+            dbContext.Carts.Remove(cart);
+            await dbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 

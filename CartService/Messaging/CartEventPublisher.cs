@@ -5,11 +5,11 @@ using System.Text.Json;
 
 namespace CartService.Messaging
 {
-    public class EventPublisher
+    public class CartEventPublisher
     {
         private readonly IConfiguration config;
 
-        public EventPublisher(IConfiguration config)
+        public CartEventPublisher(IConfiguration config)
         {
             this.config = config;
         }

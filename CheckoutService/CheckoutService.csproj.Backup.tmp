@@ -9,6 +9,7 @@
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Models\Entities\" />
+    <Folder Include="Messaging\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,12 +18,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Common.Events\Common.Events.csproj" />
   </ItemGroup>
 
 </Project>

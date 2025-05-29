@@ -1,7 +1,9 @@
 ﻿using CheckoutService.Data;
+using CheckoutService.Messaging;
 using CheckoutService.Models.Dto.ReqDtos;
 using CheckoutService.Models.Dto.ResDtos;
 using CheckoutService.Models.Entities;
+using Common.Events;
 using Microsoft.EntityFrameworkCore;
 
 namespace CheckoutService.Services.ServiceImpl
@@ -9,10 +11,12 @@ namespace CheckoutService.Services.ServiceImpl
     public class CheckoutServiceImpl : ICheckoutService
     {
         private readonly AppDbContext dbContext;
+        private readonly CheckoutEventPublisher eventPublisher;
 
-        public CheckoutServiceImpl(AppDbContext dbContext)
+        public CheckoutServiceImpl(AppDbContext dbContext, CheckoutEventPublisher eventPublisher)
         {
             this.dbContext = dbContext;
+            this.eventPublisher = eventPublisher;
         }
 
         public async Task<CheckoutSuccessResDto> CreateCheckoutAsync(CheckoutReqDto dto)
@@ -70,6 +74,12 @@ namespace CheckoutService.Services.ServiceImpl
 
             dbContext.PaymentRecords.Add(payment);
             await dbContext.SaveChangesAsync();
+
+            eventPublisher.PublishCheckoutEvent(new CheckoutEventDto
+            {
+                UserId = checkout.UserId,
+                TotalAmount = totalAmount
+            });
 
             return true;
         }

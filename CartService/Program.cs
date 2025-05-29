@@ -22,7 +22,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<ICartService, CartServiceImpl>();
-builder.Services.AddScoped<EventPublisher>();
+builder.Services.AddScoped<CartEventPublisher>();
+
+builder.Services.AddHostedService<CheckoutEventConsumer>();
 
 var app = builder.Build();
 

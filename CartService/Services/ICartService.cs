@@ -1,5 +1,6 @@
 ﻿using CartService.Models.Dtos.RequestDtos;
 using CartService.Models.Dtos.ResponseDtos;
+using Common.Events;
 
 namespace CartService.Services
 {
@@ -10,5 +11,6 @@ namespace CartService.Services
         Task UpdateCartItem(CartItemUpdateReqDto dto, string provider);
         Task<List<CartItemGetResDto>> GetCartItems(Guid userId);
         Task<List<CartDetailsResDto>> GetAllCartItems();
+        Task<bool> Checkout(CheckoutEventDto @event);
     }
 }
