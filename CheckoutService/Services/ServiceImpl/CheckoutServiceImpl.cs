@@ -45,12 +45,12 @@ namespace CheckoutService.Services.ServiceImpl
             });
         }
 
-        public async Task<bool> MakePaymentAsync(Guid checkoutId)
+        public async Task<bool> MakePaymentAsync(PaymentReqDto dto)
         {
             var checkout = await dbContext.Checkouts
                .Include(c => c.Items)
                .Include(c => c.Payment)
-               .FirstOrDefaultAsync(c => c.CheckoutId == checkoutId);
+               .FirstOrDefaultAsync(c => c.CheckoutId == dto.CheckoutId);
 
             if (checkout == null)
                 return false;
@@ -66,6 +66,7 @@ namespace CheckoutService.Services.ServiceImpl
                 Amount = totalAmount,
                 Status = "Success",
                 Message = "Payment successfully processed",
+                PaymentMethod = dto.PaymentMethod,
                 PaidAt = DateTime.UtcNow
             };
 

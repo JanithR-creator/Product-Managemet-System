@@ -166,3 +166,6 @@ D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\S
 D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 D:\Web api\MicroService\MicroServicesSolution\CheckoutService\obj\Debug\net8.0\CheckoutService.MvcApplicationPartsAssemblyInfo.cs
+D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\RabbitMQ.Client.dll
+D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\Common.Events.dll
+D:\Web api\MicroService\MicroServicesSolution\CheckoutService\bin\Debug\net8.0\Common.Events.pdb

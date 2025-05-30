@@ -7,6 +7,7 @@
         public decimal Amount { get; set; }
         public string Status { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
+        public string PaymentMethod { get; set; } = string.Empty;
         public DateTime PaidAt { get; set; }
         public Checkout Checkout { get; set; } = null!;
     }

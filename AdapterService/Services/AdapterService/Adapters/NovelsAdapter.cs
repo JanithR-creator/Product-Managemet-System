@@ -53,5 +53,10 @@ namespace AdapterService.Services.AdapterService.Adapters
         {
             throw new NotImplementedException();
         }
+
+        public async Task<bool> MakePaymentAsync(PaymentReqDto dto)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

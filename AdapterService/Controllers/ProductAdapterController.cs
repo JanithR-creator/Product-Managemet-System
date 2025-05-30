@@ -60,5 +60,17 @@ namespace AdapterService.Controllers
             }
             return Ok("Successfully updated item in cart.");
         }
+
+        [HttpPost("make-payment")]
+        public async Task<IActionResult> MakePayment([FromQuery] string provider, [FromBody] PaymentReqDto dto)
+        {
+            var adapter = this.adapterFactoryService.Factory(provider);
+            var response = await adapter.MakePaymentAsync(dto);
+            if (!response)
+            {
+                return BadRequest("Failed to make payment.");
+            }
+            return Ok("Payment successful.");
+        }
     }
 }

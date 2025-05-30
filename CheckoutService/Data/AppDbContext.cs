@@ -45,6 +45,7 @@ namespace CheckoutService.Data
                 payment.Property(p => p.Status).IsRequired().HasMaxLength(20);
                 payment.Property(p => p.Message).IsRequired().HasMaxLength(100);
                 payment.Property(p => p.PaidAt).IsRequired().HasDefaultValueSql("GETDATE()");
+                payment.Property(p => p.PaymentMethod).IsRequired().HasMaxLength(50);
 
                 payment.HasOne(p => p.Checkout)
                        .WithOne(c => c.Payment)
