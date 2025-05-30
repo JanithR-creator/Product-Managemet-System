@@ -18,7 +18,13 @@ namespace CartService.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromQuery] string provider, [FromBody] CartItemReqDto dto)
         {
-            await cartService.AddItemToCart(dto, provider);
+            bool isReseved = await cartService.AddItemToCart(dto, provider);
+
+            if (!isReseved)
+            {
+                return BadRequest("Insufficient stock for the product.");
+            }
+
             return Ok("Item added to cart and event published.");
         }
 

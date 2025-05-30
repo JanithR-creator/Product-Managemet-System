@@ -8,6 +8,7 @@
         public decimal UnitPrice { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public string ProductDescription { get; set; } = string.Empty;
+        public string Provider { get; set; } = string.Empty;
         public DateTime AddedDate { get; set; }
     }
 }

@@ -9,5 +9,6 @@ namespace CheckoutService.Models.Dto.ReqDtos
         [Column(TypeName = "decimal(18,2)")]
         public decimal UnitPrice { get; set; }
         public string ProductName { get; set; } = string.Empty;
+        public string Provider { get; set; } = string.Empty;
     }
 }

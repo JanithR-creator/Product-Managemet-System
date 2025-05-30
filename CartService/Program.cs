@@ -1,3 +1,5 @@
+using CartService.AdapterEndPointController;
+using CartService.AdapterEndPointController.Impl;
 using CartService.Data;
 using CartService.Messaging;
 using CartService.Services;
@@ -23,6 +25,7 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectio
 
 builder.Services.AddScoped<ICartService, CartServiceImpl>();
 builder.Services.AddScoped<CartEventPublisher>();
+builder.Services.AddScoped<IAdapterEndPointHandler, AdapterEnpointHandler>();
 
 builder.Services.AddHostedService<CheckoutEventConsumer>();
 

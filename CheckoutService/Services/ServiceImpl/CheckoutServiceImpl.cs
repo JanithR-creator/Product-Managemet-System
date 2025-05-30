@@ -31,7 +31,8 @@ namespace CheckoutService.Services.ServiceImpl
                     ProductId = i.ProductId,
                     Quantity = i.Quantity,
                     ProductName = i.ProductName,
-                    UnitPrice = i.UnitPrice
+                    UnitPrice = i.UnitPrice,
+                    Provider = i.Provider
                 }).ToList()
             };
 

@@ -44,7 +44,6 @@ namespace ProductService.Messaging
                 {
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
-
                     var evt = JsonSerializer.Deserialize<ProductCommonEventDto>(message);
 
                     if (evt != null)
@@ -53,6 +52,21 @@ namespace ProductService.Messaging
                         var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
 
                         var success = await productService.ReserveProductStockAsync(evt);
+
+                        // If reply-to is set, respond back
+                        if (!string.IsNullOrEmpty(ea.BasicProperties?.ReplyTo))
+                        {
+                            var replyProps = channel.CreateBasicProperties();
+                            replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
+
+                            var responseMessage = Encoding.UTF8.GetBytes(success.ToString());
+
+                            channel.BasicPublish(
+                                exchange: "",
+                                routingKey: ea.BasicProperties.ReplyTo,
+                                basicProperties: replyProps,
+                                body: responseMessage);
+                        }
 
                         if (success)
                         {

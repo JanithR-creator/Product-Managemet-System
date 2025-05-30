@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using ProductService.AdapterEndPointController;
 using ProductService.Data;
 using ProductService.Hanlers;
-using ProductService.Model.Dtos.RequestDtos;
 using ProductService.Model.Dtos.ResponseDtos;
 using ProductService.Model.Entity;
 
@@ -23,10 +22,7 @@ namespace ProductService.Services.ServiceImpl
 
         public async Task<int> SaveProducts(string provider)
         {
-            using var httpClient = new HttpClient();
-            var adapterUrl = $"http://adapterservice:80/api/ProductAdapter?provider={provider}"; // service name in Docker
-
-            var products = await httpClient.GetFromJsonAsync<List<ProductReqDto>>(adapterUrl);
+            var products = await adapterEnpointController.GetProductsListAsync(provider);
 
             if (products == null || !products.Any())
                 return 0;
@@ -68,15 +64,6 @@ namespace ProductService.Services.ServiceImpl
                 product.Quantity -= @event.Quantity;
                 await dbContext.SaveChangesAsync();
 
-                var cartReqDto = new CartReqDto()
-                {
-                    ProductId = product.ExternalDbId,
-                    Quantity = @event.Quantity,
-                    UserId = @event.UserId
-                };
-
-                var response = await adapterEnpointController.AddToCartAsync(@event.Provider, cartReqDto);
-
                 return true;
             }
 
@@ -91,13 +78,6 @@ namespace ProductService.Services.ServiceImpl
                 product.Quantity += @event.Quantity;
                 await dbContext.SaveChangesAsync();
 
-                var cartItemRemoveDto = new ExtCartItemRemoveDto()
-                {
-                    ProductId = product.ExternalDbId,
-                    UserId = @event.UserId
-                };
-
-                var response = await adapterEnpointController.RemoveFromCartAsync(@event.Provider, cartItemRemoveDto);
                 return true;
             }
             return false;
@@ -111,14 +91,6 @@ namespace ProductService.Services.ServiceImpl
                 product.Quantity += @event.ChangeQuantity;
                 await dbContext.SaveChangesAsync();
 
-                var cartItemUpdateDto = new CartReqDto()
-                {
-                    ProductId = product.ExternalDbId,
-                    UserId = @event.UserId,
-                    Quantity = @event.Quantity
-                };
-
-                var response = await adapterEnpointController.UpdateItemAsync(@event.Provider, cartItemUpdateDto);
                 return true;
             }
             return false;

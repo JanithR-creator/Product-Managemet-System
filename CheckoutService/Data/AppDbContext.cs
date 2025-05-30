@@ -29,6 +29,7 @@ namespace CheckoutService.Data
                 item.Property(ci => ci.UnitPrice).HasColumnType("decimal(18,2)").IsRequired();
                 item.Property(ci => ci.Quantity).IsRequired();
                 item.Property(ci => ci.CheckoutId).IsRequired();
+                item.Property(ci => ci.Provider).IsRequired().HasMaxLength(50);
 
                 item.HasOne(ci => ci.Checkout)
                     .WithMany(c => c.Items)

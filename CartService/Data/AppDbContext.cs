@@ -28,6 +28,7 @@ namespace CartService.Data
                 item.Property(cart => cart.AddedDate).IsRequired().HasDefaultValueSql("GETDATE()");
                 item.Property(cart => cart.ProductName).IsRequired().HasMaxLength(100);
                 item.Property(cart => cart.ProductDescription).HasMaxLength(500);
+                item.Property(cart => cart.Provider).IsRequired().HasMaxLength(100);
 
                 item.HasOne(item => item.Cart)
                 .WithMany(cart => cart.Items)
