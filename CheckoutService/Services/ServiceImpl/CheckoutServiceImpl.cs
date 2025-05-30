@@ -1,5 +1,7 @@
-﻿using CheckoutService.Data;
+﻿using CheckoutService.AdapterEndpointHandler;
+using CheckoutService.Data;
 using CheckoutService.Messaging;
+using CheckoutService.Models.Dto.ExternalDtos;
 using CheckoutService.Models.Dto.ReqDtos;
 using CheckoutService.Models.Dto.ResDtos;
 using CheckoutService.Models.Entities;
@@ -12,11 +14,13 @@ namespace CheckoutService.Services.ServiceImpl
     {
         private readonly AppDbContext dbContext;
         private readonly CheckoutEventPublisher eventPublisher;
+        private readonly IAdapterEndpointHandler adapterEndpointHandler;
 
-        public CheckoutServiceImpl(AppDbContext dbContext, CheckoutEventPublisher eventPublisher)
+        public CheckoutServiceImpl(AppDbContext dbContext, CheckoutEventPublisher eventPublisher, IAdapterEndpointHandler adapterEndpointHandler)
         {
             this.dbContext = dbContext;
             this.eventPublisher = eventPublisher;
+            this.adapterEndpointHandler = adapterEndpointHandler;
         }
 
         public async Task<CheckoutSuccessResDto> CreateCheckoutAsync(CheckoutReqDto dto)
@@ -46,7 +50,7 @@ namespace CheckoutService.Services.ServiceImpl
             });
         }
 
-        public async Task<bool> MakePaymentAsync(PaymentReqDto dto)
+        public async Task<bool> MakePaymentAsync(string provider, PaymentReqDto dto)
         {
             var checkout = await dbContext.Checkouts
                .Include(c => c.Items)
@@ -60,6 +64,20 @@ namespace CheckoutService.Services.ServiceImpl
                 return false;
 
             var totalAmount = checkout.Items.Sum(i => i.Quantity * i.UnitPrice);
+
+            var extPaymentDto = new ExtPaymentReqDto
+            {
+                PaymentMethod = dto.PaymentMethod,
+                TotalAmount = totalAmount,
+                UserId = checkout.UserId
+            };
+
+            var resp = await adapterEndpointHandler.MakePaymentAaync(extPaymentDto, provider);
+
+            if (!resp)
+            {
+                throw new InvalidOperationException("Payment failed through the adapter service.");
+            }
 
             var payment = new PaymentRecord
             {

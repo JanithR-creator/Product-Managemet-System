@@ -1,3 +1,5 @@
+using CheckoutService.AdapterEndpointHandler;
+using CheckoutService.AdapterEndpointHandler.Impl;
 using CheckoutService.Data;
 using CheckoutService.Messaging;
 using CheckoutService.Services;
@@ -18,6 +20,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<ICheckoutService, CheckoutServiceImpl>();
 builder.Services.AddScoped<CheckoutEventPublisher>();
+builder.Services.AddScoped<IAdapterEndpointHandler, AdapterEndPointHandler>();
 
 builder.Services.AddDbContext<AppDbContext>(
                 options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
