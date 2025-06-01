@@ -41,22 +41,72 @@ namespace AdapterService.Services.AdapterService.Adapters
 
         public async Task<bool> AddToCartAsync(CartReqDto dto)
         {
-            throw new NotImplementedException();
+            var externalUrl = "http://host.docker.internal:6000/add-to-cart";
+
+            var payload = new
+            {
+                userId = dto.UserId,
+                productId = dto.ProductId,
+                quantity = dto.Quantity
+            };
+
+            var response = await httpClient.PostAsJsonAsync(externalUrl, payload);
+
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> RemoveFromCartAsync(ItemRemoveReqDto dto)
         {
-            throw new NotImplementedException();
+            var externalUrl = "http://host.docker.internal:6000/remove-from-cart";
+
+            var payload = new
+            {
+                userId = dto.UserId,
+                productId = dto.ProductId
+            };
+
+            // Serialize the payload to JSON
+            var jsonContent = JsonContent.Create(payload);
+
+            // Create a DELETE HttpRequestMessage
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(externalUrl),
+                Content = jsonContent
+            };
+
+            var response = await httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> UpdateItemAsync(CartReqDto dto)
         {
-            throw new NotImplementedException();
+            var externalUrl = "http://host.docker.internal:6000/update-cart";
+            var payload = new
+            {
+                userId = dto.UserId,
+                productId = dto.ProductId,
+                newQuantity = dto.Quantity
+            };
+            var response = await httpClient.PutAsJsonAsync(externalUrl, payload);
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> MakePaymentAsync(PaymentReqDto dto)
         {
-            throw new NotImplementedException();
+            var externalUrl = "http://host.docker.internal:6000/make-payment";
+
+            var payload = new
+            {
+                userId = dto.UserId,
+                paymentMethod = dto.PaymentMethod,
+                totalAmount = dto.TotalAmount
+            };
+
+            var response = await httpClient.PostAsJsonAsync(externalUrl, payload);
+
+            return response.IsSuccessStatusCode;
         }
     }
 }
