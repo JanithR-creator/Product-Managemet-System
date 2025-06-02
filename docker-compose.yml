@@ -76,6 +76,24 @@ services:
            - microservicessolution-network
         environment:
            - ASPNETCORE_ENVIRONMENT=Docker
+
+    apigateway:
+        build:
+            context: .
+            dockerfile: ApiGateway/Dockerfile
+        container_name: apigateway
+        ports:
+            - "5005:80"
+        depends_on:
+            - productservice
+            - adapterservice
+            - cartservice
+            - checkoutservice
+        networks:
+            - microservicessolution-network
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Docker
+
     
 
 networks:
