@@ -88,5 +88,21 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
             var response = await httpClient.PutAsJsonAsync(externalUrl, payload);
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<bool> MakePaymentAsync(PaymentReqDto dto)
+        {
+            var externalUrl = "http://host.docker.internal:5000/make-payment";
+
+            var payload = new
+            {
+                userId = dto.UserId,
+                paymentMethod = dto.PaymentMethod,
+                totalAmount = dto.TotalAmount
+            };
+
+            var response = await httpClient.PostAsJsonAsync(externalUrl, payload);
+
+            return response.IsSuccessStatusCode;
+        }
     }
 }

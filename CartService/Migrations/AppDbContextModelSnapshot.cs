@@ -50,6 +50,9 @@ namespace CartService.Migrations
                     b.Property<Guid>("CartId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("ExternalProductId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("ProductDescription")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -59,6 +62,11 @@ namespace CartService.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Provider")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");

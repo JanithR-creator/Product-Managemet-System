@@ -1,5 +1,7 @@
-﻿using CartService.Data;
+﻿using CartService.AdapterEndPointController;
+using CartService.Data;
 using CartService.Messaging;
+using CartService.Models.Dtos.ExternalCartDtos;
 using CartService.Models.Dtos.RequestDtos;
 using CartService.Models.Dtos.ResponseDtos;
 using CartService.Models.Enitity;
@@ -11,19 +13,36 @@ namespace CartService.Services.ServiceImpl
     public class CartServiceImpl : ICartService
     {
         private readonly AppDbContext dbContext;
-        private readonly EventPublisher eventPublisher;
+        private readonly CartEventPublisher eventPublisher;
+        private readonly IAdapterEndPointHandler adapterEndPointHandler;
 
-        public CartServiceImpl(AppDbContext dbContext, EventPublisher eventPublisher)
+        public CartServiceImpl(AppDbContext dbContext, CartEventPublisher eventPublisher, IAdapterEndPointHandler adapterEndPointHandler)
         {
             this.dbContext = dbContext;
             this.eventPublisher = eventPublisher;
+            this.adapterEndPointHandler = adapterEndPointHandler;
         }
 
-        public async Task AddItemToCart(CartItemReqDto dto, string provider)
+        public async Task<bool> AddItemToCart(CartItemReqDto dto, string provider)
         {
             var cart = await dbContext.Carts
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == dto.UserId);
+
+            var @event = new ProductCommonEventDto
+            {
+                ProductId = dto.ProductId,
+                Quantity = dto.Quantity
+            };
+
+            bool isReserved = await eventPublisher.PublishProductReserveEventAsync(@event);
+
+            if (!isReserved)
+            {
+                Console.WriteLine($"[X] Insufficient stock for product {dto.ProductId}");
+                return false;
+            }
+
 
             if (cart == null)
             {
@@ -37,24 +56,31 @@ namespace CartService.Services.ServiceImpl
             cart.Items.Add(new CartItem
             {
                 ProductId = dto.ProductId,
+                ExternalProductId = dto.ExternalProductId,
                 Quantity = dto.Quantity,
                 UnitPrice = dto.UnitPrice,
                 AddedDate = DateTime.UtcNow,
                 ProductName = dto.ProductName,
-                ProductDescription = dto.ProductDescription
+                ProductDescription = dto.ProductDescription,
+                Provider = provider
             });
-
             await dbContext.SaveChangesAsync();
 
-            var @event = new ProductCommonEventDto
+            if (dto.ExternalProductId.HasValue)
             {
-                ProductId = dto.ProductId,
-                Quantity = dto.Quantity,
-                UserId = dto.UserId,
-                Provider = provider
-            };
+                var cartReqDto = new CartReqDto()
+                {
+                    ProductId = dto.ExternalProductId.Value,
+                    Quantity = dto.Quantity,
+                    UserId = dto.UserId
+                };
 
-            eventPublisher.PublishProductReserveEvent(@event);
+                bool resp = await adapterEndPointHandler.AddToCartAsync(provider, cartReqDto);
+
+                return resp;
+            }
+
+            return true;
         }
 
         public async Task RemoveItemFromCart(Guid cartItemId, string provider)
@@ -71,10 +97,23 @@ namespace CartService.Services.ServiceImpl
             var restoreEvent = new ProductCommonEventDto
             {
                 ProductId = item.ProductId,
-                Quantity = item.Quantity,
-                UserId = item.Cart.UserId,
-                Provider = provider
+                Quantity = item.Quantity
             };
+
+            if (item.ExternalProductId.HasValue)
+            {
+                var cartReqDto = new CartItemRemoveReqDto()
+                {
+                    ProductId = item.ExternalProductId.Value,
+                    UserId = item.Cart.UserId
+                };
+                bool resp = await adapterEndPointHandler.RemoveFromCartAsync(provider, cartReqDto);
+
+                if (!resp)
+                {
+                    throw new Exception("Failed to remove item from external cart.");
+                }
+            }
 
             dbContext.CartItems.Remove(item);
             await dbContext.SaveChangesAsync();
@@ -96,21 +135,36 @@ namespace CartService.Services.ServiceImpl
             }
             else
             {
+                if (item.ExternalProductId.HasValue)
+                {
+                    var cartItemUpdateDto = new CartReqDto()
+                    {
+                        ProductId = item.ExternalProductId.Value,
+                        UserId = item.Cart.UserId,
+                        Quantity = dto.Quantity
+                    };
+
+                    var resp = await adapterEndPointHandler.UpdateItemAsync(provider, cartItemUpdateDto);
+
+                    if (!resp)
+                    {
+                        throw new Exception("Failed to update item in external cart.");
+                    }
+                }
+
                 int changeQuantity = item.Quantity - dto.Quantity;
 
                 item.Quantity = dto.Quantity;
+
                 dbContext.CartItems.Update(item);
+                await dbContext.SaveChangesAsync();
 
                 var updateEvent = new ProductCommonEventUpdateDto
                 {
                     ProductId = item.ProductId,
                     ChangeQuantity = changeQuantity,
-                    Quantity = dto.Quantity,
-                    UserId = item.Cart.UserId,
-                    Provider = provider
+                    Quantity = dto.Quantity
                 };
-                await dbContext.SaveChangesAsync();
-
                 eventPublisher.PublishProductUpdateEvent(updateEvent);
             }
         }
@@ -132,7 +186,8 @@ namespace CartService.Services.ServiceImpl
                 UnitPrice = i.UnitPrice,
                 AddedDate = i.AddedDate,
                 ProductName = i.ProductName,
-                ProductDescription = i.ProductDescription
+                ProductDescription = i.ProductDescription,
+                Provider = i.Provider
             }).ToList();
         }
 
@@ -153,9 +208,30 @@ namespace CartService.Services.ServiceImpl
                     UnitPrice = i.UnitPrice,
                     AddedDate = i.AddedDate,
                     ProductName = i.ProductName,
-                    ProductDescription = i.ProductDescription
+                    ProductDescription = i.ProductDescription,
+                    Provider = i.Provider
                 }).ToList()
             }).ToList();
+        }
+
+        public async Task<bool> Checkout(CheckoutEventDto @event)
+        {
+            var cart = await dbContext.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == @event.UserId);
+
+            if (cart == null)
+            {
+                return false;
+            }
+
+            var items = cart.Items.ToList();
+
+            dbContext.CartItems.RemoveRange(items);
+            dbContext.Carts.Remove(cart);
+            await dbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 

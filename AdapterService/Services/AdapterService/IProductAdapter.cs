@@ -9,5 +9,6 @@ namespace AdapterService.Services.AdapterService
         Task<bool> AddToCartAsync(CartReqDto dto);
         Task<bool> RemoveFromCartAsync(ItemRemoveReqDto dto);
         Task<bool> UpdateItemAsync(CartReqDto dto);
+        Task<bool> MakePaymentAsync(PaymentReqDto dto);
     }
 }
