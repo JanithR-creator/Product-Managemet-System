@@ -22,6 +22,16 @@ namespace ProductService.Controller
             return Ok("All Products Successfully Deleted.");        
         }
 
+        [HttpPost("internal-create")]
+        public IActionResult CreateInternalProduct([FromBody] ProductReqDto dto)
+        {
+            if (dto == null)
+                return BadRequest("Product data is required.");
+
+            productService.CreateInternalProduct(dto);
+            return Ok("Product created successfully.");
+        }
+
         [HttpPost("import")]
         public async Task<IActionResult> ImportFromAdapter([FromQuery] string provider)
         {

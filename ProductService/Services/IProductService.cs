@@ -1,4 +1,5 @@
 ﻿using Common.Events;
+using ProductService.Model.Dtos.RequestDtos;
 using ProductService.Model.Dtos.ResponseDtos;
 
 namespace ProductService.Services
@@ -11,6 +12,7 @@ namespace ProductService.Services
         Task<bool> UpdateProductStockAsync(ProductCommonEventUpdateDto @event);
         Task<List<NovelResDto>> GetAllNovels(int page, int pageSize);
         Task<List<SchoolItemResDto>> GetAllSclItems(int page, int pageSize);
+        void CreateInternalProduct(ProductReqDto dto);
         void DeleteAllProducts();
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductService.AdapterEndPointController;
 using ProductService.Data;
 using ProductService.Hanlers;
+using ProductService.Model.Dtos.RequestDtos;
 using ProductService.Model.Dtos.ResponseDtos;
 using ProductService.Model.Entity;
 
@@ -19,7 +20,7 @@ namespace ProductService.Services.ServiceImpl
             this.handlers = handlers;
             this.adapterEnpointController = adapterEnpointController;
         }
-
+        
         public async Task<int> SaveProducts(string provider)
         {
             var products = await adapterEnpointController.GetProductsListAsync(provider);
@@ -151,6 +152,35 @@ namespace ProductService.Services.ServiceImpl
                 .ToListAsync();
 
             return data;
+        }
+
+        public void CreateInternalProduct(ProductReqDto dto)
+        {
+            var newProduct = new Product
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                Price = dto.Price,
+                Quantity = dto.Quantity,
+                PruductType = dto.PruductType,
+                Provider = dto.Provider
+            };
+
+            dbContext.Products.Add(newProduct);
+            dbContext.SaveChanges();
+
+            if (dto.PruductType == "novel")
+            {
+                var details = new BookDetails
+                {
+                    ProductId = newProduct.ProductId,
+                    Author = dto.Author,
+                    Publisher = dto.Publisher,
+                    Category = dto.Category
+                };
+                dbContext.BookDetails.Add(details);
+                dbContext.SaveChanges();
+            }
         }
     }
 }
