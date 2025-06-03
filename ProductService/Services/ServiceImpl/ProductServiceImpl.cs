@@ -109,11 +109,24 @@ namespace ProductService.Services.ServiceImpl
             dbContext.SaveChanges();
         }
 
-        public async Task<List<NovelResDto>> GetAllNovels(int page, int pageSize)
+        public async Task<List<string>> GetAllCategoriesAsync()
+        {
+            return await dbContext.BookDetails
+                .Select(b => b.Category)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        public async Task<List<NovelResDto>> GetAllNovels(int page, int pageSize, string? category = null)
         {
             var query = dbContext.Products
                 .Include(p => p.BookDetails)
                 .Where(p => p.PruductType == "novel");
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(p => p.BookDetails != null && p.BookDetails.Category == category);
+            }
 
             var data = await query
                 .Skip((page - 1) * pageSize)
@@ -136,10 +149,15 @@ namespace ProductService.Services.ServiceImpl
             return data;
         }
 
-        public async Task<List<SchoolItemResDto>> GetAllSclItems(int page, int pageSize)
+        public async Task<List<SchoolItemResDto>> GetAllSclItems(int page, int pageSize, string? searchTerm = null)
         {
             var query = dbContext.Products
                 .Where(p => p.PruductType == "school item");
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(p => p.Name.ToLower().Contains(searchTerm.ToLower()));
+            }
 
             var data = await query
                 .Skip((page - 1) * pageSize)
@@ -158,6 +176,7 @@ namespace ProductService.Services.ServiceImpl
 
             return data;
         }
+
 
         public void CreateInternalProduct(ProductReqDto dto)
         {

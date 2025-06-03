@@ -45,10 +45,18 @@ namespace ProductService.Controller
             return Ok(new { Imported = importedCount });
         }
 
-        [HttpGet("novel")]
-        public async Task<IActionResult> GetAllNovels([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        [HttpGet("novel/categories")]
+        public async Task<IActionResult> GetCategories()
         {
-           var data =await productService.GetAllNovels(page, pageSize);
+            var categories = await productService.GetAllCategoriesAsync();
+            return Ok(categories);
+        }
+
+
+        [HttpGet("novel")]
+        public async Task<IActionResult> GetAllNovels([FromQuery] int page = 1, [FromQuery] int pageSize = 10,[FromQuery] string? category = null)
+        {
+           var data =await productService.GetAllNovels(page, pageSize, category);
 
             return Ok(new
             {
@@ -59,9 +67,9 @@ namespace ProductService.Controller
         }
 
         [HttpGet("school-item")]
-        public async Task<IActionResult> GetAllSclItems([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllSclItems([FromQuery] int page = 1, [FromQuery] int pageSize = 10,[FromQuery] string? searchTerm = null)
         {
-            var data = await productService.GetAllSclItems(page, pageSize);
+            var data = await productService.GetAllSclItems(page, pageSize,searchTerm);
 
             return Ok(new
             {
