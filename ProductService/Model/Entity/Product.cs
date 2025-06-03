@@ -13,6 +13,7 @@ namespace ProductService.Model.Entity
         public decimal Price { get; set; } = 0;
         public int Quantity { get; set; } = 0;
         public string PruductType { get; set; } = string.Empty;
+        public string ImageUrl { get; set; } = string.Empty;
         public BookDetails? BookDetails { get; set; }
     }
 }

@@ -58,7 +58,7 @@ namespace ProductService.Controller
             });
         }
 
-        [HttpGet("schoolItems")]
+        [HttpGet("school-item")]
         public async Task<IActionResult> GetAllSclItems([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var data = await productService.GetAllSclItems(page, pageSize);

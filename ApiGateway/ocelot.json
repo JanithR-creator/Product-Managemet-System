@@ -10,11 +10,11 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/products/novel",
+      "UpstreamPathTemplate": "/products/novels",
       "UpstreamHttpMethod": [ "GET" ]
     },
     {
-      "DownstreamPathTemplate": "/api/product/schoolItems",
+      "DownstreamPathTemplate": "/api/product/school-item",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

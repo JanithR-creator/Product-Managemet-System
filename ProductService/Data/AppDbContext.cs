@@ -21,6 +21,7 @@ namespace ProductService.Data
                 productE.Property(productE=>productE.Price).IsRequired();
                 productE.Property(productE=>productE.Quantity).IsRequired();
                 productE.Property(productE=>productE.PruductType).IsRequired();
+                productE.Property(productE=>productE.ImageUrl).IsRequired(false);
 
                 productE.HasOne(productE => productE.BookDetails)
                 .WithOne(bookDE => bookDE.Product)

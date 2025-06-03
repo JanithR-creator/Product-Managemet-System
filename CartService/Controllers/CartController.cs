@@ -29,7 +29,7 @@ namespace CartService.Controllers
         }
 
         [HttpDelete("remove")]
-        public async Task<IActionResult> RemoveFromCart([FromQuery] string provider, [FromBody] Guid CartItemID)
+        public async Task<IActionResult> RemoveFromCart([FromQuery] string provider, [FromQuery] Guid CartItemID)
         {
             await cartService.RemoveItemFromCart(CartItemID, provider);
             return Ok("Item removed from cart and event published.");

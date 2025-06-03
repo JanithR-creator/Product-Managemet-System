@@ -36,7 +36,8 @@ namespace ProductService.Services.ServiceImpl
                 Description = p.Description,
                 Price = p.Price,
                 Quantity = p.Quantity,
-                PruductType = p.PruductType
+                PruductType = p.PruductType,
+                ImageUrl = p.ImageUrl
             }).ToList();
 
             dbContext.Products.AddRange(baseProducts); //Add multiple entities efficiently
@@ -126,7 +127,9 @@ namespace ProductService.Services.ServiceImpl
                     Quantity = p.Quantity,
                     Author = p.BookDetails!.Author,
                     Publisher = p.BookDetails.Publisher,
-                    Category = p.BookDetails.Category
+                    Category = p.BookDetails.Category,
+                    ImageUrl = p.ImageUrl,
+                    ExternalProductID = p.ExternalDbId
                 })
                 .ToListAsync();
 
@@ -147,7 +150,9 @@ namespace ProductService.Services.ServiceImpl
                     Name = p.Name,
                     Description = p.Description,
                     Price = p.Price,
-                    Quantity = p.Quantity
+                    Quantity = p.Quantity,
+                    ImageUrl = p.ImageUrl,
+                    ExternalProductID = p.ExternalDbId
                 })
                 .ToListAsync();
 

@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Events", "Common.Eve
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheckoutService", "CheckoutService\CheckoutService.csproj", "{B078401A-6BB9-4CC1-BECE-8C47216692A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{92F9D648-FDA0-4EDD-BADA-82F215D75C56}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,10 @@ Global
 		{B078401A-6BB9-4CC1-BECE-8C47216692A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B078401A-6BB9-4CC1-BECE-8C47216692A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B078401A-6BB9-4CC1-BECE-8C47216692A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92F9D648-FDA0-4EDD-BADA-82F215D75C56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92F9D648-FDA0-4EDD-BADA-82F215D75C56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92F9D648-FDA0-4EDD-BADA-82F215D75C56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92F9D648-FDA0-4EDD-BADA-82F215D75C56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
