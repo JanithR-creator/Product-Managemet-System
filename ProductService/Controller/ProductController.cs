@@ -58,12 +58,7 @@ namespace ProductService.Controller
         {
            var data =await productService.GetProductsAsync(productType, page, pageSize, filter);
 
-            return Ok(new
-            {
-                Page = page,
-                PageSize = pageSize,
-                Items = data
-            });
+            return Ok(data);
         }
     }
 }

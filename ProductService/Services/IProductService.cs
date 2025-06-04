@@ -11,7 +11,7 @@ namespace ProductService.Services
         Task<bool> RestoreProductStockAsync(ProductCommonEventDto @event);
         Task<bool> UpdateProductStockAsync(ProductCommonEventUpdateDto @event);
         Task<List<string>> GetAllCategoriesAsync();
-        Task<List<object>> GetProductsAsync(string productType, int page, int pageSize, string? filter = null);
+        Task<ProductResDto> GetProductsAsync(string productType, int page, int pageSize, string? filter = null);
         void CreateInternalProduct(ProductReqDto dto);
         void DeleteAllProducts();
     }

@@ -117,7 +117,7 @@ namespace ProductService.Services.ServiceImpl
                 .ToListAsync();
         }
 
-        public async Task<List<object>> GetProductsAsync(string productType, int page, int pageSize, string? filter = null)
+        public async Task<ProductResDto> GetProductsAsync(string productType, int page, int pageSize, string? filter = null)
         {
             IQueryable<Product> query = dbContext.Products;
 
@@ -133,6 +133,8 @@ namespace ProductService.Services.ServiceImpl
                         (!string.IsNullOrEmpty(p.Name) && p.Name.ToLower().Contains(filter.ToLower()))
                     );
                 }
+
+                var itemCount = query.Count();
 
                 var novels = await query
                     .Skip((page - 1) * pageSize)
@@ -152,7 +154,13 @@ namespace ProductService.Services.ServiceImpl
                     })
                     .ToListAsync<object>();
 
-                return novels;
+                return new ProductResDto
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        Products = novels,
+                        TotalItems = itemCount
+                };
             }
             else if (productType == "school-item")
             {
@@ -162,6 +170,8 @@ namespace ProductService.Services.ServiceImpl
                 {
                     query = query.Where(p => p.Name.ToLower().Contains(filter.ToLower()));
                 }
+
+                var itemCount = query.Count();
 
                 var items = await query
                     .Skip((page - 1) * pageSize)
@@ -178,10 +188,16 @@ namespace ProductService.Services.ServiceImpl
                     })
                     .ToListAsync<object>();
 
-                return items;
+                return new ProductResDto
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        Products = items,
+                        TotalItems = itemCount
+                };
             }
 
-            return new List<object>();
+            return new ProductResDto();
         }
 
 
