@@ -53,23 +53,10 @@ namespace ProductService.Controller
         }
 
 
-        [HttpGet("novel")]
-        public async Task<IActionResult> GetAllNovels([FromQuery] int page = 1, [FromQuery] int pageSize = 10,[FromQuery] string? category = null)
+        [HttpGet]
+        public async Task<IActionResult> GetProductsAsync([FromQuery] string productType, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? filter = null)
         {
-           var data =await productService.GetAllNovels(page, pageSize, category);
-
-            return Ok(new
-            {
-                Page = page,
-                PageSize = pageSize,
-                Items = data
-            });
-        }
-
-        [HttpGet("school-item")]
-        public async Task<IActionResult> GetAllSclItems([FromQuery] int page = 1, [FromQuery] int pageSize = 10,[FromQuery] string? searchTerm = null)
-        {
-            var data = await productService.GetAllSclItems(page, pageSize,searchTerm);
+           var data =await productService.GetProductsAsync(productType, page, pageSize, filter);
 
             return Ok(new
             {

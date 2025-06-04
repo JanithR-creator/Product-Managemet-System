@@ -117,64 +117,71 @@ namespace ProductService.Services.ServiceImpl
                 .ToListAsync();
         }
 
-        public async Task<List<NovelResDto>> GetAllNovels(int page, int pageSize, string? category = null)
+        public async Task<List<object>> GetProductsAsync(string productType, int page, int pageSize, string? filter = null)
         {
-            var query = dbContext.Products
-                .Include(p => p.BookDetails)
-                .Where(p => p.PruductType == "novel");
+            IQueryable<Product> query = dbContext.Products;
 
-            if (!string.IsNullOrEmpty(category))
+            if (productType == "novel")
             {
-                query = query.Where(p => p.BookDetails != null && p.BookDetails.Category == category);
+                query = query.Include(p => p.BookDetails)
+                             .Where(p => p.PruductType == "novel");
+
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    query = query.Where(p =>
+                        (p.BookDetails != null && p.BookDetails.Category == filter) ||
+                        (!string.IsNullOrEmpty(p.Name) && p.Name.ToLower().Contains(filter.ToLower()))
+                    );
+                }
+
+                var novels = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new NovelResDto
+                    {
+                        ProductId = p.ProductId,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        Quantity = p.Quantity,
+                        Author = p.BookDetails!.Author,
+                        Publisher = p.BookDetails.Publisher,
+                        Category = p.BookDetails.Category,
+                        ImageUrl = p.ImageUrl,
+                        ExternalProductID = p.ExternalDbId
+                    })
+                    .ToListAsync<object>();
+
+                return novels;
+            }
+            else if (productType == "school-item")
+            {
+                query = query.Where(p => p.PruductType == "school-item");
+
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    query = query.Where(p => p.Name.ToLower().Contains(filter.ToLower()));
+                }
+
+                var items = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new SchoolItemResDto
+                    {
+                        ProductId = p.ProductId,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        Quantity = p.Quantity,
+                        ImageUrl = p.ImageUrl,
+                        ExternalProductID = p.ExternalDbId
+                    })
+                    .ToListAsync<object>();
+
+                return items;
             }
 
-            var data = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => new NovelResDto
-                {
-                    ProductId = p.ProductId,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Quantity = p.Quantity,
-                    Author = p.BookDetails!.Author,
-                    Publisher = p.BookDetails.Publisher,
-                    Category = p.BookDetails.Category,
-                    ImageUrl = p.ImageUrl,
-                    ExternalProductID = p.ExternalDbId
-                })
-                .ToListAsync();
-
-            return data;
-        }
-
-        public async Task<List<SchoolItemResDto>> GetAllSclItems(int page, int pageSize, string? searchTerm = null)
-        {
-            var query = dbContext.Products
-                .Where(p => p.PruductType == "school item");
-
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                query = query.Where(p => p.Name.ToLower().Contains(searchTerm.ToLower()));
-            }
-
-            var data = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => new SchoolItemResDto
-                {
-                    ProductId = p.ProductId,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Quantity = p.Quantity,
-                    ImageUrl = p.ImageUrl,
-                    ExternalProductID = p.ExternalDbId
-                })
-                .ToListAsync();
-
-            return data;
+            return new List<object>();
         }
 
 

@@ -14,7 +14,7 @@
       "UpstreamHttpMethod": [ "GET" ]
     },
     {
-      "DownstreamPathTemplate": "/api/product/novel",
+      "DownstreamPathTemplate": "/api/product",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -22,19 +22,7 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/products/novels",
-      "UpstreamHttpMethod": [ "GET" ]
-    },
-    {
-      "DownstreamPathTemplate": "/api/product/school-item",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "productservice",
-          "Port": 80
-        }
-      ],
-      "UpstreamPathTemplate": "/products/school-items",
+      "UpstreamPathTemplate": "/products",
       "UpstreamHttpMethod": [ "GET" ]
     },
     {
