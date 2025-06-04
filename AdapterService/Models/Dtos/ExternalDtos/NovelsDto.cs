@@ -12,6 +12,7 @@
         public string Category { get; set; } = string.Empty;
         public int PublishedYear { get; set; }
         public bool IsBestSeller { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
 
     }
 }

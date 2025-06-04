@@ -27,9 +27,9 @@ namespace CheckoutService.Controllers
         }
 
         [HttpPost("pay")]
-        public async Task<IActionResult> MakePayment([FromQuery] string provider, [FromBody] PaymentReqDto dto)
+        public async Task<IActionResult> MakePayment([FromBody] PaymentReqDto dto)
         {
-            var result = await checkoutService.MakePaymentAsync(provider, dto);
+            var result = await checkoutService.MakePaymentAsync(dto);
 
             if (!result)
                 return NotFound("Checkout not found or Payment already completed.");

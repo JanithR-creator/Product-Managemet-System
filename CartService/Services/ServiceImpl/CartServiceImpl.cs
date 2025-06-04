@@ -29,10 +29,28 @@ namespace CartService.Services.ServiceImpl
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == dto.UserId);
 
+            if (cart != null && cart.Items.Any(i => i.ProductId == dto.ProductId))
+            {
+                var existingItem = cart?.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
+                if (existingItem != null)
+                {
+                    existingItem.Quantity += 1;
+
+                    await UpdateCartItem(new CartItemUpdateReqDto
+                        {
+                            CartItemId = existingItem.CartItemId,
+                            Quantity = existingItem.Quantity
+                        }, provider);
+
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+            }
+
             var @event = new ProductCommonEventDto
             {
                 ProductId = dto.ProductId,
-                Quantity = dto.Quantity
+                Quantity = 1
             };
 
             bool isReserved = await eventPublisher.PublishProductReserveEventAsync(@event);
@@ -42,7 +60,6 @@ namespace CartService.Services.ServiceImpl
                 Console.WriteLine($"[X] Insufficient stock for product {dto.ProductId}");
                 return false;
             }
-
 
             if (cart == null)
             {
@@ -57,7 +74,7 @@ namespace CartService.Services.ServiceImpl
             {
                 ProductId = dto.ProductId,
                 ExternalProductId = dto.ExternalProductId,
-                Quantity = dto.Quantity,
+                Quantity = 1,
                 UnitPrice = dto.UnitPrice,
                 AddedDate = DateTime.UtcNow,
                 ProductName = dto.ProductName,
@@ -71,7 +88,7 @@ namespace CartService.Services.ServiceImpl
                 var cartReqDto = new CartReqDto()
                 {
                     ProductId = dto.ExternalProductId.Value,
-                    Quantity = dto.Quantity,
+                    Quantity = 1,
                     UserId = dto.UserId
                 };
 

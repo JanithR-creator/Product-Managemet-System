@@ -31,6 +31,7 @@ namespace AdapterService.Services.AdapterService.Adapters
                 Price = n.Price,
                 Quantity = n.Quantity,
                 PruductType = "novel",
+                ImageUrl = n.ImageUrl,
                 Author = n.Author,
                 Publisher = n.Publisher,
                 Category = n.Category

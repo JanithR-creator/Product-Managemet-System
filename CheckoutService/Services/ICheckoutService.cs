@@ -5,7 +5,7 @@ namespace CheckoutService.Services
     public interface ICheckoutService
     {
         Task<CheckoutSuccessResDto> CreateCheckoutAsync(CheckoutReqDto dto);
-        Task<bool> MakePaymentAsync(string provider, PaymentReqDto dto);
+        Task<bool> MakePaymentAsync(PaymentReqDto dto);
         Task<CheckoutResDto> GetCheckOutByUserIdAsync(Guid userId);
         Task<List<CheckoutResDto>> GetCheckoutsAsync();
     }

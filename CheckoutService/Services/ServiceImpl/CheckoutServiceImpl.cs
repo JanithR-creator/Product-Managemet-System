@@ -50,39 +50,46 @@ namespace CheckoutService.Services.ServiceImpl
             });
         }
 
-        public async Task<bool> MakePaymentAsync(string provider, PaymentReqDto dto)
+        public async Task<bool> MakePaymentAsync(PaymentReqDto dto)
         {
             var checkout = await dbContext.Checkouts
                .Include(c => c.Items)
                .Include(c => c.Payment)
                .FirstOrDefaultAsync(c => c.CheckoutId == dto.CheckoutId);
 
-            if (checkout == null)
+            if (checkout == null || checkout.Status == "Completed")
                 return false;
 
-            if (checkout.Status == "Completed")
-                return false;
+            var groupedByProvider = checkout.Items
+                .GroupBy(item => item.Provider)
+                .ToList();
 
-            var totalAmount = checkout.Items.Sum(i => i.Quantity * i.UnitPrice);
-
-            var extPaymentDto = new ExtPaymentReqDto
+            foreach (var group in groupedByProvider)
             {
-                PaymentMethod = dto.PaymentMethod,
-                TotalAmount = totalAmount,
-                UserId = checkout.UserId
-            };
+                var currentProvider = group.Key;
+                var totalAmount = group.Sum(item => item.UnitPrice * item.Quantity);
 
-            var resp = await adapterEndpointHandler.MakePaymentAaync(extPaymentDto, provider);
+                var extPaymentDto = new ExtPaymentReqDto
+                {
+                    PaymentMethod = dto.PaymentMethod,
+                    TotalAmount = totalAmount,
+                    UserId = checkout.UserId
+                };
 
-            if (!resp)
-            {
-                throw new InvalidOperationException("Payment failed through the adapter service.");
+                var resp = await adapterEndpointHandler.MakePaymentAaync(extPaymentDto, currentProvider);
+
+                if (!resp)
+                {
+                    throw new InvalidOperationException($"Payment failed through adapter service for provider: {currentProvider}");
+                }
             }
+
+            var totalOverall = checkout.Items.Sum(i => i.Quantity * i.UnitPrice);
 
             var payment = new PaymentRecord
             {
                 CheckoutId = checkout.CheckoutId,
-                Amount = totalAmount,
+                Amount = totalOverall,
                 Status = "Success",
                 Message = "Payment successfully processed",
                 PaymentMethod = dto.PaymentMethod,
@@ -98,7 +105,7 @@ namespace CheckoutService.Services.ServiceImpl
             eventPublisher.PublishCheckoutEvent(new CheckoutEventDto
             {
                 UserId = checkout.UserId,
-                TotalAmount = totalAmount
+                TotalAmount = totalOverall
             });
 
             return true;

@@ -22,6 +22,16 @@ namespace ProductService.Controller
             return Ok("All Products Successfully Deleted.");        
         }
 
+        [HttpPost("internal-create")]
+        public IActionResult CreateInternalProduct([FromBody] ProductReqDto dto)
+        {
+            if (dto == null)
+                return BadRequest("Product data is required.");
+
+            productService.CreateInternalProduct(dto);
+            return Ok("Product created successfully.");
+        }
+
         [HttpPost("import")]
         public async Task<IActionResult> ImportFromAdapter([FromQuery] string provider)
         {
@@ -35,30 +45,20 @@ namespace ProductService.Controller
             return Ok(new { Imported = importedCount });
         }
 
-        [HttpGet("novel")]
-        public async Task<IActionResult> GetAllNovels([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        [HttpGet("novel/categories")]
+        public async Task<IActionResult> GetCategories()
         {
-           var data =await productService.GetAllNovels(page, pageSize);
-
-            return Ok(new
-            {
-                Page = page,
-                PageSize = pageSize,
-                Items = data
-            });
+            var categories = await productService.GetAllCategoriesAsync();
+            return Ok(categories);
         }
 
-        [HttpGet("schoolItems")]
-        public async Task<IActionResult> GetAllSclItems([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-        {
-            var data = await productService.GetAllSclItems(page, pageSize);
 
-            return Ok(new
-            {
-                Page = page,
-                PageSize = pageSize,
-                Items = data
-            });
+        [HttpGet]
+        public async Task<IActionResult> GetProductsAsync([FromQuery] string productType, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? filter = null)
+        {
+           var data =await productService.GetProductsAsync(productType, page, pageSize, filter);
+
+            return Ok(data);
         }
     }
 }

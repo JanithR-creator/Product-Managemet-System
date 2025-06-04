@@ -64,6 +64,9 @@ namespace ProductService.Migrations
                     b.Property<Guid>("ExternalDbId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

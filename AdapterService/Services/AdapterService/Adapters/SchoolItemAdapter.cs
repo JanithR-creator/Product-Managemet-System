@@ -5,7 +5,7 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
 {
     public class SchoolItemAdapter : IProductAdapter
     {
-        public string AdapterKey => "school item";
+        public string AdapterKey => "school-item";
 
         private readonly HttpClient httpClient;
         public SchoolItemAdapter(HttpClient httpClient)
@@ -28,8 +28,9 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
                 Description = p.Description,
                 Price = p.Price,
                 Quantity = p.Quantity,
-                PruductType = "school item",
-                Provider = "school items provider"
+                PruductType = "school-item",
+                Provider = "school items provider",
+                ImageUrl = p.ImageUrl
             }).ToList();
 
             return internalProduct;

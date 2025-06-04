@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductService.AdapterEndPointController;
 using ProductService.Data;
 using ProductService.Hanlers;
+using ProductService.Model.Dtos.RequestDtos;
 using ProductService.Model.Dtos.ResponseDtos;
 using ProductService.Model.Entity;
 
@@ -19,7 +20,7 @@ namespace ProductService.Services.ServiceImpl
             this.handlers = handlers;
             this.adapterEnpointController = adapterEnpointController;
         }
-
+        
         public async Task<int> SaveProducts(string provider)
         {
             var products = await adapterEnpointController.GetProductsListAsync(provider);
@@ -35,7 +36,8 @@ namespace ProductService.Services.ServiceImpl
                 Description = p.Description,
                 Price = p.Price,
                 Quantity = p.Quantity,
-                PruductType = p.PruductType
+                PruductType = p.PruductType,
+                ImageUrl = p.ImageUrl
             }).ToList();
 
             dbContext.Products.AddRange(baseProducts); //Add multiple entities efficiently
@@ -107,50 +109,125 @@ namespace ProductService.Services.ServiceImpl
             dbContext.SaveChanges();
         }
 
-        public async Task<List<NovelResDto>> GetAllNovels(int page, int pageSize)
+        public async Task<List<string>> GetAllCategoriesAsync()
         {
-            var query = dbContext.Products
-                .Include(p => p.BookDetails)
-                .Where(p => p.PruductType == "novel");
-
-            var data = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => new NovelResDto
-                {
-                    ProductId = p.ProductId,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Quantity = p.Quantity,
-                    Author = p.BookDetails!.Author,
-                    Publisher = p.BookDetails.Publisher,
-                    Category = p.BookDetails.Category
-                })
+            return await dbContext.BookDetails
+                .Select(b => b.Category)
+                .Distinct()
                 .ToListAsync();
-
-            return data;
         }
 
-        public async Task<List<SchoolItemResDto>> GetAllSclItems(int page, int pageSize)
+        public async Task<ProductResDto> GetProductsAsync(string productType, int page, int pageSize, string? filter = null)
         {
-            var query = dbContext.Products
-                .Where(p => p.PruductType == "school item");
+            IQueryable<Product> query = dbContext.Products;
 
-            var data = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => new SchoolItemResDto
+            if (productType == "novel")
+            {
+                query = query.Include(p => p.BookDetails)
+                             .Where(p => p.PruductType == "novel");
+
+                if (!string.IsNullOrEmpty(filter))
                 {
-                    ProductId = p.ProductId,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Quantity = p.Quantity
-                })
-                .ToListAsync();
+                    query = query.Where(p =>
+                        (p.BookDetails != null && p.BookDetails.Category == filter) ||
+                        (!string.IsNullOrEmpty(p.Name) && p.Name.ToLower().Contains(filter.ToLower()))
+                    );
+                }
 
-            return data;
+                var itemCount = query.Count();
+
+                var novels = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new NovelResDto
+                    {
+                        ProductId = p.ProductId,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        Quantity = p.Quantity,
+                        Author = p.BookDetails!.Author,
+                        Publisher = p.BookDetails.Publisher,
+                        Category = p.BookDetails.Category,
+                        ImageUrl = p.ImageUrl,
+                        ExternalProductID = p.ExternalDbId
+                    })
+                    .ToListAsync<object>();
+
+                return new ProductResDto
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        Products = novels,
+                        TotalItems = itemCount
+                };
+            }
+            else if (productType == "school-item")
+            {
+                query = query.Where(p => p.PruductType == "school-item");
+
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    query = query.Where(p => p.Name.ToLower().Contains(filter.ToLower()));
+                }
+
+                var itemCount = query.Count();
+
+                var items = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new SchoolItemResDto
+                    {
+                        ProductId = p.ProductId,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        Quantity = p.Quantity,
+                        ImageUrl = p.ImageUrl,
+                        ExternalProductID = p.ExternalDbId
+                    })
+                    .ToListAsync<object>();
+
+                return new ProductResDto
+                    {
+                        Page = page,
+                        PageSize = pageSize,
+                        Products = items,
+                        TotalItems = itemCount
+                };
+            }
+
+            return new ProductResDto();
+        }
+
+
+        public void CreateInternalProduct(ProductReqDto dto)
+        {
+            var newProduct = new Product
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                Price = dto.Price,
+                Quantity = dto.Quantity,
+                PruductType = dto.PruductType,
+                Provider = dto.Provider
+            };
+
+            dbContext.Products.Add(newProduct);
+            dbContext.SaveChanges();
+
+            if (dto.PruductType == "novel")
+            {
+                var details = new BookDetails
+                {
+                    ProductId = newProduct.ProductId,
+                    Author = dto.Author,
+                    Publisher = dto.Publisher,
+                    Category = dto.Category
+                };
+                dbContext.BookDetails.Add(details);
+                dbContext.SaveChanges();
+            }
         }
     }
 }
