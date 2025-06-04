@@ -5,7 +5,7 @@ namespace AdapterService.Services.AdapterService.Adapters
 {
     public class NovelsAdapter : IProductAdapter
     {
-        public string AdapterKey => "novels";
+        public string AdapterKey => "novel";
 
         private readonly HttpClient httpClient;
 

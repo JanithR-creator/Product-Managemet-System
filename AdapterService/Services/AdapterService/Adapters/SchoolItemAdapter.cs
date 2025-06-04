@@ -5,7 +5,7 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
 {
     public class SchoolItemAdapter : IProductAdapter
     {
-        public string AdapterKey => "school-items";
+        public string AdapterKey => "school-item";
 
         private readonly HttpClient httpClient;
         public SchoolItemAdapter(HttpClient httpClient)
