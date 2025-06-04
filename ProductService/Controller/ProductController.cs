@@ -52,13 +52,26 @@ namespace ProductService.Controller
             return Ok(categories);
         }
 
-
         [HttpGet]
         public async Task<IActionResult> GetProductsAsync([FromQuery] string productType, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? filter = null)
         {
            var data =await productService.GetProductsAsync(productType, page, pageSize, filter);
 
             return Ok(data);
+        }
+
+        [HttpGet("providers")]
+        public async Task<IActionResult> GetAllProvidersAsync()
+        {
+            var providers = await productService.GetAllProvidersAsync();
+            return Ok(providers);
+        }
+
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllProductsAsync([FromQuery] string? provider = null, [FromQuery] string? filter = null)
+        {
+            var products = await productService.GetAllProductsAsync(provider, filter);
+            return Ok(products);
         }
     }
 }

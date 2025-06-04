@@ -2,9 +2,14 @@
 {
     public class ProductResDto
     {
-        public List<Object> Products { get; set; } = new List<object>();
-        public int Page { get; set; } = 0;
-        public int PageSize { get; set; } = 0;
-        public int TotalItems { get; set; } = 0;
+        public Guid ProductId { get; set; }
+        public Guid ExternalProductID { get; set; }
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public string Provider { get; set; } = "";
+        public decimal Price { get; set; }
+        public int Quantity { get; set; }
+        public NovelDetailsResDto? Novel { get; set; }
     }
 }

@@ -6,6 +6,7 @@ using ProductService.Hanlers;
 using ProductService.Model.Dtos.RequestDtos;
 using ProductService.Model.Dtos.ResponseDtos;
 using ProductService.Model.Entity;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ProductService.Services.ServiceImpl
 {
@@ -117,7 +118,7 @@ namespace ProductService.Services.ServiceImpl
                 .ToListAsync();
         }
 
-        public async Task<ProductResDto> GetProductsAsync(string productType, int page, int pageSize, string? filter = null)
+        public async Task<ProductPaginateResDto> GetProductsAsync(string productType, int page, int pageSize, string? filter = null)
         {
             IQueryable<Product> query = dbContext.Products;
 
@@ -139,22 +140,25 @@ namespace ProductService.Services.ServiceImpl
                 var novels = await query
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(p => new NovelResDto
+                    .Select(p => new ProductResDto
                     {
                         ProductId = p.ProductId,
                         Name = p.Name,
                         Description = p.Description,
                         Price = p.Price,
                         Quantity = p.Quantity,
-                        Author = p.BookDetails!.Author,
-                        Publisher = p.BookDetails.Publisher,
-                        Category = p.BookDetails.Category,
                         ImageUrl = p.ImageUrl,
-                        ExternalProductID = p.ExternalDbId
+                        ExternalProductID = p.ExternalDbId,
+                        Novel = new NovelDetailsResDto
+                        {
+                            Author = p.BookDetails!.Author,
+                            Publisher = p.BookDetails.Publisher,
+                            Category = p.BookDetails.Category
+                        }
                     })
                     .ToListAsync<object>();
 
-                return new ProductResDto
+                return new ProductPaginateResDto
                     {
                         Page = page,
                         PageSize = pageSize,
@@ -176,7 +180,7 @@ namespace ProductService.Services.ServiceImpl
                 var items = await query
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(p => new SchoolItemResDto
+                    .Select(p => new ProductResDto
                     {
                         ProductId = p.ProductId,
                         Name = p.Name,
@@ -188,7 +192,7 @@ namespace ProductService.Services.ServiceImpl
                     })
                     .ToListAsync<object>();
 
-                return new ProductResDto
+                return new ProductPaginateResDto
                     {
                         Page = page,
                         PageSize = pageSize,
@@ -197,7 +201,7 @@ namespace ProductService.Services.ServiceImpl
                 };
             }
 
-            return new ProductResDto();
+            return new ProductPaginateResDto();
         }
 
 
@@ -228,6 +232,51 @@ namespace ProductService.Services.ServiceImpl
                 dbContext.BookDetails.Add(details);
                 dbContext.SaveChanges();
             }
+        }
+
+        public async Task<List<string>> GetAllProvidersAsync()
+        {
+            return await dbContext.Products
+                .Select(p => p.Provider)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        public async Task<List<ProductResDto>> GetAllProductsAsync(string? provider = null, string? filter = null)
+        {
+            IQueryable<Product> query = dbContext.Products;
+
+            if (!string.IsNullOrEmpty(provider))
+            {
+                query = query.Where(p => p.Provider == provider);
+            }
+
+            if (!string.IsNullOrEmpty(filter))
+            {
+                var loweredFilter = filter.ToLower();
+                query = query.Where(p => !string.IsNullOrEmpty(p.Name) && p.Name.ToLower().Contains(loweredFilter));
+            }
+
+            var products = await query
+                .Select(p => new ProductResDto
+                {
+                    ProductId = p.ProductId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Quantity = p.Quantity,
+                    ImageUrl = p.ImageUrl,
+                    ExternalProductID = p.ExternalDbId,
+                    Provider = p.Provider,
+                    Novel = p.BookDetails != null ? new NovelDetailsResDto
+                    {
+                        Author = p.BookDetails.Author,
+                        Publisher = p.BookDetails.Publisher,
+                        Category = p.BookDetails.Category
+                    } : null
+                }).ToListAsync();
+
+            return products;
         }
     }
 }
