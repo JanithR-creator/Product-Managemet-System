@@ -23,13 +23,24 @@ namespace ProductService.Controller
         }
 
         [HttpPost("internal-create")]
-        public IActionResult CreateInternalProduct([FromBody] ProductReqDto dto)
+        public IActionResult CreateInternalProduct([FromForm] InternalProductReqDto dto)
         {
-            if (dto == null)
-                return BadRequest("Product data is required.");
-
             productService.CreateInternalProduct(dto);
-            return Ok("Product created successfully.");
+            return Ok("Product Created Successfully.");
+        }
+
+        [HttpPut("internal-update")]
+        public IActionResult UpdateProductInternalAsync([FromForm] InternalProductReqDto dto,[FromQuery] Guid productId)
+        {
+            productService.UpdateProductInternalAsync(dto, productId);
+            return Ok("Product Updated Successfully.");
+        }
+
+        [HttpDelete("internal-delete")]
+        public IActionResult DeleteInternalProductAsync([FromQuery] Guid productId)
+        {
+            productService.DeleteInternalProductAsync(productId);
+            return Ok("Product Deleted Successfully.");
         }
 
         [HttpPost("import")]

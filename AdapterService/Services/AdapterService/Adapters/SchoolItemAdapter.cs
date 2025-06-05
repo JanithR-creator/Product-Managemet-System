@@ -29,7 +29,7 @@ namespace AdapterService.Services.AdapterService.AdapterServiceImpl
                 Price = p.Price,
                 Quantity = p.Quantity,
                 PruductType = "school-item",
-                Provider = "school items provider",
+                Provider = "school-item",
                 ImageUrl = p.ImageUrl
             }).ToList();
 

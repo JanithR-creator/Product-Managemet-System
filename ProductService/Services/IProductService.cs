@@ -14,7 +14,9 @@ namespace ProductService.Services
         Task<ProductPaginateResDto> GetProductsAsync(string productType, int page, int pageSize, string? filter = null);
         Task<List<string>> GetAllProvidersAsync();
         Task<List<ProductResDto>> GetAllProductsAsync(string? provider = null, string? filter = null);
-        void CreateInternalProduct(ProductReqDto dto);
+        void CreateInternalProduct(InternalProductReqDto dto);
+        void UpdateProductInternalAsync(InternalProductReqDto dto, Guid productId);
+        void DeleteInternalProductAsync(Guid productId);
         void DeleteAllProducts();
     }
 }

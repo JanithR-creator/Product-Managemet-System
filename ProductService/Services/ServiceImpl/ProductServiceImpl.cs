@@ -6,7 +6,6 @@ using ProductService.Hanlers;
 using ProductService.Model.Dtos.RequestDtos;
 using ProductService.Model.Dtos.ResponseDtos;
 using ProductService.Model.Entity;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ProductService.Services.ServiceImpl
 {
@@ -148,6 +147,8 @@ namespace ProductService.Services.ServiceImpl
                         Price = p.Price,
                         Quantity = p.Quantity,
                         ImageUrl = p.ImageUrl,
+                        Provider = p.Provider,
+                        ProductType = p.PruductType,
                         ExternalProductID = p.ExternalDbId,
                         Novel = new NovelDetailsResDto
                         {
@@ -188,6 +189,8 @@ namespace ProductService.Services.ServiceImpl
                         Price = p.Price,
                         Quantity = p.Quantity,
                         ImageUrl = p.ImageUrl,
+                        Provider = p.Provider,
+                        ProductType = p.PruductType,
                         ExternalProductID = p.ExternalDbId
                     })
                     .ToListAsync<object>();
@@ -205,7 +208,7 @@ namespace ProductService.Services.ServiceImpl
         }
 
 
-        public void CreateInternalProduct(ProductReqDto dto)
+        public void CreateInternalProduct(InternalProductReqDto dto)
         {
             var newProduct = new Product
             {
@@ -214,7 +217,9 @@ namespace ProductService.Services.ServiceImpl
                 Price = dto.Price,
                 Quantity = dto.Quantity,
                 PruductType = dto.PruductType,
-                Provider = dto.Provider
+                Provider = dto.Provider,
+                ImageUrl = dto.ImageUrl,
+                ExternalDbId = Guid.Empty
             };
 
             dbContext.Products.Add(newProduct);
@@ -225,11 +230,59 @@ namespace ProductService.Services.ServiceImpl
                 var details = new BookDetails
                 {
                     ProductId = newProduct.ProductId,
-                    Author = dto.Author,
-                    Publisher = dto.Publisher,
-                    Category = dto.Category
+                    Author = dto.Author ?? string.Empty,
+                    Publisher = dto.Publisher ?? string.Empty,
+                    Category = dto.Category ?? string.Empty
                 };
                 dbContext.BookDetails.Add(details);
+                dbContext.SaveChanges();
+            }
+        }
+
+        public void UpdateProductInternalAsync(InternalProductReqDto dto, Guid productId)
+        {
+            var product = dbContext.Products.FirstOrDefault(p => p.ProductId == productId);
+            if (product != null)
+            {
+                product.Name = dto.Name;
+                product.Description = dto.Description;
+                product.Price = dto.Price;
+                product.Quantity = dto.Quantity;
+                product.PruductType = dto.PruductType;
+                product.Provider = dto.Provider;
+                product.ImageUrl = dto.ImageUrl;
+
+                if (dto.PruductType == "novel")
+                {
+                    var bookDetails = dbContext.BookDetails.FirstOrDefault(b => b.ProductId == product.ProductId);
+                    if (bookDetails != null)
+                    {
+                        bookDetails.Author = dto.Author ?? string.Empty;
+                        bookDetails.Publisher = dto.Publisher ?? string.Empty;
+                        bookDetails.Category = dto.Category ?? string.Empty;
+                    }
+                    else
+                    {
+                        bookDetails = new BookDetails
+                        {
+                            ProductId = product.ProductId,
+                            Author = dto.Author ?? string.Empty,
+                            Publisher = dto.Publisher ?? string.Empty,
+                            Category = dto.Category ?? string.Empty
+                        };
+                        dbContext.BookDetails.Add(bookDetails);
+                    }
+                }
+                dbContext.SaveChanges();
+            }
+        }
+
+        public void DeleteInternalProductAsync(Guid productId)
+        {
+            var product = dbContext.Products.FirstOrDefault(p => p.ProductId == productId);
+            if (product != null)
+            {
+                dbContext.Products.Remove(product);
                 dbContext.SaveChanges();
             }
         }
@@ -268,6 +321,7 @@ namespace ProductService.Services.ServiceImpl
                     ImageUrl = p.ImageUrl,
                     ExternalProductID = p.ExternalDbId,
                     Provider = p.Provider,
+                    ProductType = p.PruductType,
                     Novel = p.BookDetails != null ? new NovelDetailsResDto
                     {
                         Author = p.BookDetails.Author,
