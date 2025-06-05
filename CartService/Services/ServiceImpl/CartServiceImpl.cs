@@ -7,6 +7,7 @@ using CartService.Models.Dtos.ResponseDtos;
 using CartService.Models.Enitity;
 using Common.Events;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel;
 
 namespace CartService.Services.ServiceImpl
 {
@@ -83,7 +84,7 @@ namespace CartService.Services.ServiceImpl
             });
             await dbContext.SaveChangesAsync();
 
-            if (dto.ExternalProductId.HasValue)
+            if (dto.ExternalProductId.HasValue && provider != "Internal")
             {
                 var cartReqDto = new CartReqDto()
                 {
@@ -117,7 +118,7 @@ namespace CartService.Services.ServiceImpl
                 Quantity = item.Quantity
             };
 
-            if (item.ExternalProductId.HasValue)
+            if (item.ExternalProductId.HasValue && item.Provider != "Internal")
             {
                 var cartReqDto = new CartItemRemoveReqDto()
                 {
@@ -152,7 +153,7 @@ namespace CartService.Services.ServiceImpl
             }
             else
             {
-                if (item.ExternalProductId.HasValue)
+                if (item.ExternalProductId.HasValue && item.Provider != "Internal")
                 {
                     var cartItemUpdateDto = new CartReqDto()
                     {

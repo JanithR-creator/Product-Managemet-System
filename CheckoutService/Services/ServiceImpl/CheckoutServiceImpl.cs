@@ -69,6 +69,11 @@ namespace CheckoutService.Services.ServiceImpl
                 var currentProvider = group.Key;
                 var totalAmount = group.Sum(item => item.UnitPrice * item.Quantity);
 
+                if (currentProvider == "Internal")
+                {
+                    continue;
+                }
+
                 var extPaymentDto = new ExtPaymentReqDto
                 {
                     PaymentMethod = dto.PaymentMethod,
@@ -112,39 +117,80 @@ namespace CheckoutService.Services.ServiceImpl
         }
 
 
-        public async Task<CheckoutResDto> GetCheckOutByUserIdAsync(Guid userId)
+        public async Task<CheckoutResDto> GetCheckOutByCheckoutIdAsync(Guid checkOutId)
         {
             var checkout = await dbContext.Checkouts
                 .Include(c => c.Items)
                 .Include(c => c.Payment)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+                .FirstOrDefaultAsync(c => c.CheckoutId == checkOutId);
 
             if (checkout == null)
             {
-                throw new EntryPointNotFoundException("Checkout Empty.");
+                throw new KeyNotFoundException($"Checkout with ID {checkOutId} not found.");
             }
 
-            if (checkout.Payment == null)
-            {
-                throw new InvalidOperationException("Payment record is missing for the checkout.");
-            }
-
-            return new CheckoutResDto()
+            return new CheckoutResDto
             {
                 CheckoutId = checkout.CheckoutId,
-                UserId = userId,
-                PaymentRecordId = checkout.Payment.PaymentRecordId,
+                PaymentRecordId = checkout.Payment?.PaymentRecordId ?? Guid.Empty,
+                UserId = checkout.UserId,
                 CheckoutDate = checkout.CreatedAt,
-                PaidDate = checkout.Payment.PaidAt,
+                PaidDate = checkout.Payment?.PaidAt ?? DateTime.MinValue,
                 CheckoutStatus = checkout.Status,
-                Amount = checkout.Payment.Amount,
-                PaymentStatus = checkout.Payment.Status
+                Amount = checkout.Payment?.Amount ?? 0,
+                PaymentStatus = checkout.Payment?.Status ?? "Pending",
+                Items = checkout.Items.Select(i => new CheckoutItemResDto
+                {
+                    CheckoutItemId = i.CheckoutItemId,
+                    ProductId = i.ProductId,
+                    ProductName = i.ProductName,
+                    Provider = i.Provider,
+                    UnitPrice = i.UnitPrice,
+                    Quantity = i.Quantity
+                }).ToList()
             };
         }
 
-        public Task<List<CheckoutResDto>> GetCheckoutsAsync()
+        public async Task<List<PaymentDetailsResDto>> GetAllPaymentDetalsAsync(DateTime? dateTime = null)
+            {
+                try
+                {
+                    IQueryable<PaymentRecord> query = dbContext.PaymentRecords.Include(p => p.Checkout);
+
+                    if (dateTime.HasValue)
+                    {
+                        var dateOnly = dateTime.Value.Date;
+                        query = query.Where(p => p.PaidAt.Date == dateOnly);
+                    }
+
+                    var paymentRecords = await query.ToListAsync();
+
+                    return paymentRecords.Select(p => new PaymentDetailsResDto
+                    {
+                        PaymentRecordId = p.PaymentRecordId,
+                        CheckoutId = p.Checkout.CheckoutId,
+                        Amount = p.Amount,
+                        Status = p.Status,
+                        Message = p.Message,
+                        PaymentMethod = p.PaymentMethod,
+                        PaidAt = p.PaidAt
+                    }).ToList();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("An error occurred while fetching payment details.", ex);
+                }
+            }
+        public async Task<List<DateTime>> GetAllPaymentDatesAsync()
         {
-            throw new NotImplementedException();
+            var dates = await dbContext.PaymentRecords
+                .Select(p => p.PaidAt.Date)
+                .Distinct()
+                .OrderBy(d => d)
+                .ToListAsync();
+
+            return dates;
         }
+
     }
 }

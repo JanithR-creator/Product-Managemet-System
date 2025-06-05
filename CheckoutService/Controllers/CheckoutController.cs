@@ -37,12 +37,29 @@ namespace CheckoutService.Controllers
             return Ok("Payment completed.");
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetCheckout(Guid userId)
+        [HttpGet("{checkoutId}")]
+        public async Task<IActionResult> GetCheckoutById(Guid checkoutId)
         {
-           var checkout =  await checkoutService.GetCheckOutByUserIdAsync(userId);
+            if (checkoutId == Guid.Empty)
+                return BadRequest("Invalid checkout ID.");
+            var result = await checkoutService.GetCheckOutByCheckoutIdAsync(checkoutId);
+            if (result == null)
+                return NotFound("Checkout not found.");
+            return Ok(result);
+        }
 
-            return Ok(checkout);
+        [HttpGet("payments")]
+        public async Task<IActionResult> GetAllPaymentDetails([FromQuery] DateTime? dateTime = null)
+        {
+            var result = await checkoutService.GetAllPaymentDetalsAsync(dateTime);
+            return Ok(result);
+        }
+
+        [HttpGet("payment-dates")]
+        public async Task<IActionResult> GetAllPaymentDates()
+        {
+            var result = await checkoutService.GetAllPaymentDatesAsync();
+            return Ok(result);
         }
     }
 }

@@ -10,5 +10,6 @@
         public string CheckoutStatus { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public string PaymentStatus { get; set; } = string.Empty;
+        public List<CheckoutItemResDto> Items { get; set; } = new List<CheckoutItemResDto>();
     }
 }
