@@ -2,7 +2,6 @@
 {
     public class ProductCommonEventDto
     {
-        public Guid ProductId { get; set; }
-        public int Quantity { get; set; }
+        public Dictionary<Guid, int> ProductQuantities { get; set; } = new Dictionary<Guid, int>();
     }
 }

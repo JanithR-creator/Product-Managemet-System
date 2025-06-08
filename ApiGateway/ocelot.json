@@ -159,18 +159,6 @@
       "UpstreamPathTemplate": "/cart/user-items",
       "UpstreamHttpMethod": [ "GET" ]
     },
-    {
-      "DownstreamPathTemplate": "/api/cart/getAll",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "cartservice",
-          "Port": 80
-        }
-      ],
-      "UpstreamPathTemplate": "/cart/all",
-      "UpstreamHttpMethod": [ "GET" ]
-    },
 
     // CheckoutService Routes
     {

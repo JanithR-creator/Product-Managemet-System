@@ -33,12 +33,26 @@ namespace CheckoutService.Services.ServiceImpl
                 Items = dto.Items.Select(i => new CheckoutItem
                 {
                     ProductId = i.ProductId,
+                    ExternalProductId = i.ExternalProductId,
                     Quantity = i.Quantity,
                     ProductName = i.ProductName,
                     UnitPrice = i.UnitPrice,
                     Provider = i.Provider
                 }).ToList()
             };
+
+            var productQuantityDict = checkout.Items
+                .ToDictionary(item => item.ProductId, item => item.Quantity);
+
+            bool res = await eventPublisher.PublishProductReserveEventAsync(new ProductCommonEventDto
+            {
+                ProductQuantities = productQuantityDict,
+            });
+
+            if (!res)
+            {
+                throw new InvalidOperationException("Failed to reserve products. Please try again later.");
+            }
 
             dbContext.Checkouts.Add(checkout);
             await dbContext.SaveChangesAsync();
@@ -78,7 +92,12 @@ namespace CheckoutService.Services.ServiceImpl
                 {
                     PaymentMethod = dto.PaymentMethod,
                     TotalAmount = totalAmount,
-                    UserId = checkout.UserId
+                    UserId = checkout.UserId,
+                    Products = group.Select(item => new ExtProductDetailDto
+                    {
+                        ProductId = item.ExternalProductId,
+                        Quantity = item.Quantity
+                    }).Select(i => i).ToList()
                 };
 
                 var resp = await adapterEndpointHandler.MakePaymentAaync(extPaymentDto, currentProvider);

@@ -1,109 +1,152 @@
-﻿using Common.Events;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ProductService.AdapterEndPointController;
 using ProductService.Data;
-using ProductService.Hanlers;
 using ProductService.Model.Dtos.RequestDtos;
 using ProductService.Model.Dtos.ResponseDtos;
 using ProductService.Model.Entity;
+using System.Reflection;
+using System.Text.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ProductService.Services.ServiceImpl
 {
     public class ProductServiceImpl : IProductService
     {
         private readonly AppDbContext dbContext;
-        private readonly IEnumerable<IProductTypeHandler> handlers;
         private readonly IAdapterEnpointHandler adapterEnpointController;
-        public ProductServiceImpl(AppDbContext dbContext, IEnumerable<IProductTypeHandler> handlers, IAdapterEnpointHandler adapterEnpointController)
+        public ProductServiceImpl(AppDbContext dbContext, IAdapterEnpointHandler adapterEnpointController)
         {
             this.dbContext = dbContext;
-            this.handlers = handlers;
             this.adapterEnpointController = adapterEnpointController;
         }
-        
-        public async Task<int> SaveProducts(string provider)
+
+        private static readonly HashSet<string> BaseProductFields = new()
         {
-            var products = await adapterEnpointController.GetProductsListAsync(provider);
+            "ProductId", "Name", "Description", "Quantity", "Price", "Provider", "PruductType", "ImageUrl"
+        };
+
+        public async Task<int> SaveProducts()
+        {
+            var products = await adapterEnpointController.GetProductsListAsync();
 
             if (products == null || !products.Any())
                 return 0;
 
-            var baseProducts = products.Select(p => new Product
+            var externalIds = products.Select(p => p.ProductId).ToList();
+            var existingProducts = await dbContext.Products
+                .Where(p => externalIds.Contains(p.ExternalDbId))
+                .ToListAsync();
+
+            var existingProductsDict = existingProducts.ToDictionary(p => p.ExternalDbId, p => p);
+
+            var newProducts = new List<Product>();
+            var updatedProducts = new List<Product>();
+
+            foreach (var dto in products)
             {
-                ExternalDbId = p.ProductId,
-                Provider = p.Provider,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                Quantity = p.Quantity,
-                PruductType = p.PruductType,
-                ImageUrl = p.ImageUrl
-            }).ToList();
-
-            dbContext.Products.AddRange(baseProducts); //Add multiple entities efficiently
-            await dbContext.SaveChangesAsync(); //freeing up the thread while waiting for DB
-
-            foreach (var product in products)
-            {
-                var insertProduct = baseProducts.First(p => p.Name == product.Name);
-                var handler = handlers.FirstOrDefault(h => h.CanHandle(product.PruductType));
-
-                if (handler != null)
+                if (existingProductsDict.TryGetValue(dto.ProductId, out var existingProduct))
                 {
-                    await handler.HandleAsync(product, insertProduct, dbContext);
+                    existingProduct.Quantity = dto.Quantity;
+                    updatedProducts.Add(existingProduct);
                 }
+                else
+                {
+                    var newProduct = new Product
+                    {
+                        ExternalDbId = dto.ProductId,
+                        Provider = dto.Provider,
+                        Name = dto.Name,
+                        Description = dto.Description,
+                        Price = dto.Price,
+                        Quantity = dto.Quantity,
+                        PruductType = dto.PruductType,
+                        ImageUrl = dto.ImageUrl
+                    };
+                    newProducts.Add(newProduct);
+                }
+            }
+
+            if (newProducts.Any())
+            {
+                dbContext.Products.AddRange(newProducts);
+            }
+
+            if (updatedProducts.Any())
+            {
+                dbContext.Products.UpdateRange(updatedProducts);
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            var productDetails = new List<ProductDetails>();
+            foreach (var dto in products)
+            {
+                Product baseProduct;
+                if (existingProductsDict.TryGetValue(dto.ProductId, out var existingProduct))
+                {
+                    baseProduct = existingProduct;
+                }
+                else
+                {
+                    baseProduct = newProducts.First(p => p.ExternalDbId == dto.ProductId);
+                }
+
+                var metadata = new Dictionary<string, object>();
+                var props = dto.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                foreach (var prop in props)
+                {
+                    var propName = prop.Name;
+                    if (BaseProductFields.Contains(propName))
+                        continue;
+
+                    var value = prop.GetValue(dto);
+                    if (value != null)
+                    {
+                        metadata[propName] = value;
+                    }
+                }
+
+                if (!existingProductsDict.ContainsKey(dto.ProductId))
+                {
+                    productDetails.Add(new ProductDetails
+                    {
+                        ProductId = baseProduct.ProductId,
+                        MetadataJson = JsonSerializer.Serialize(metadata)
+                    });
+                }
+            }
+
+            if (productDetails.Any())
+            {
+                dbContext.ProductDetails.AddRange(productDetails);
+                await dbContext.SaveChangesAsync();
             }
 
             return products.Count;
         }
 
-        public async Task<bool> ReserveProductStockAsync(ProductCommonEventDto @event)
+        public async Task<bool> ReserveProductStockAsync(Guid productId, int quantity)
         {
-            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
+            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
 
-            if (product != null && product.Quantity >= @event.Quantity)
+            if (product != null && product.Quantity >= quantity)
             {
-                product.Quantity -= @event.Quantity;
+                product.Quantity -= quantity;
                 await dbContext.SaveChangesAsync();
 
                 return true;
             }
 
-            return false;
-        }
-
-        public async Task<bool> RestoreProductStockAsync(ProductCommonEventDto @event)
-        {
-            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
-            if (product != null)
-            {
-                product.Quantity += @event.Quantity;
-                await dbContext.SaveChangesAsync();
-
-                return true;
-            }
-            return false;
-        }
-
-        public async Task<bool> UpdateProductStockAsync(ProductCommonEventUpdateDto @event)
-        {
-            var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == @event.ProductId);
-            if (product != null)
-            {
-                product.Quantity += @event.ChangeQuantity;
-                await dbContext.SaveChangesAsync();
-
-                return true;
-            }
             return false;
         }
 
         public void DeleteAllProducts()
         {
-            var allBookDetails = dbContext.BookDetails.ToList();
+            var allBookDetails = dbContext.ProductDetails.ToList();
             var allProducts = dbContext.Products.ToList();
 
-            dbContext.BookDetails.RemoveRange(allBookDetails);
+            dbContext.ProductDetails.RemoveRange(allBookDetails);
             dbContext.Products.RemoveRange(allProducts);
 
             dbContext.SaveChanges();
@@ -111,102 +154,78 @@ namespace ProductService.Services.ServiceImpl
 
         public async Task<List<string>> GetAllCategoriesAsync()
         {
-            return await dbContext.BookDetails
-                .Select(b => b.Category)
-                .Distinct()
+            var productDetailsList = await dbContext.ProductDetails
+                .Select(pd => pd.MetadataJson)
                 .ToListAsync();
+
+            var categories = productDetailsList
+                .Select(json =>
+                {
+                    try
+                    {
+                        var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+                        return metadata != null && metadata.ContainsKey("Category")
+                            ? metadata["Category"]?.ToString()
+                            : null;
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                })
+                .Where(c => !string.IsNullOrEmpty(c))
+                .Distinct()
+                .ToList();
+
+            return categories!;
         }
 
-        public async Task<ProductPaginateResDto> GetProductsAsync(string productType, int page, int pageSize, string? filter = null)
+
+        public async Task<ProductPaginateResDto> GetProductsAsync(int page, int pageSize, string? filter = null)
         {
-            IQueryable<Product> query = dbContext.Products;
+            IQueryable<Product> query = dbContext.Products
+                .Include(p => p.ProductDetails)
+                .Where(p => p.ProductDetails != null);
 
-            if (productType == "novel")
+            if (!string.IsNullOrEmpty(filter))
             {
-                query = query.Include(p => p.BookDetails)
-                             .Where(p => p.PruductType == "novel");
-
-                if (!string.IsNullOrEmpty(filter))
-                {
-                    query = query.Where(p =>
-                        (p.BookDetails != null && p.BookDetails.Category == filter) ||
-                        (!string.IsNullOrEmpty(p.Name) && p.Name.ToLower().Contains(filter.ToLower()))
-                    );
-                }
-
-                var itemCount = query.Count();
-
-                var novels = await query
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(p => new ProductResDto
-                    {
-                        ProductId = p.ProductId,
-                        Name = p.Name,
-                        Description = p.Description,
-                        Price = p.Price,
-                        Quantity = p.Quantity,
-                        ImageUrl = p.ImageUrl,
-                        Provider = p.Provider,
-                        ProductType = p.PruductType,
-                        ExternalProductID = p.ExternalDbId,
-                        Novel = new NovelDetailsResDto
-                        {
-                            Author = p.BookDetails!.Author,
-                            Publisher = p.BookDetails.Publisher,
-                            Category = p.BookDetails.Category
-                        }
-                    })
-                    .ToListAsync<object>();
-
-                return new ProductPaginateResDto
-                    {
-                        Page = page,
-                        PageSize = pageSize,
-                        Products = novels,
-                        TotalItems = itemCount
-                };
-            }
-            else if (productType == "school-item")
-            {
-                query = query.Where(p => p.PruductType == "school-item");
-
-                if (!string.IsNullOrEmpty(filter))
-                {
-                    query = query.Where(p => p.Name.ToLower().Contains(filter.ToLower()));
-                }
-
-                var itemCount = query.Count();
-
-                var items = await query
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(p => new ProductResDto
-                    {
-                        ProductId = p.ProductId,
-                        Name = p.Name,
-                        Description = p.Description,
-                        Price = p.Price,
-                        Quantity = p.Quantity,
-                        ImageUrl = p.ImageUrl,
-                        Provider = p.Provider,
-                        ProductType = p.PruductType,
-                        ExternalProductID = p.ExternalDbId
-                    })
-                    .ToListAsync<object>();
-
-                return new ProductPaginateResDto
-                    {
-                        Page = page,
-                        PageSize = pageSize,
-                        Products = items,
-                        TotalItems = itemCount
-                };
+                var loweredFilter = filter.ToLower();
+                query = query.Where(p =>
+                    (!string.IsNullOrEmpty(p.Name) && p.Name.ToLower().Contains(loweredFilter)) ||
+                    (p.ProductDetails != null && !string.IsNullOrEmpty(p.ProductDetails.MetadataJson) && p.ProductDetails.MetadataJson.ToLower().Contains(loweredFilter)));
             }
 
-            return new ProductPaginateResDto();
+            int totalItems = await query.CountAsync();
+
+            var result = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var products = result.Select(p => new ProductResDto
+            {
+                ProductId = p.ProductId,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                Quantity = p.Quantity,
+                ImageUrl = p.ImageUrl,
+                Provider = p.Provider,
+                ProductType = p.PruductType,
+                ExternalProductID = p.ExternalDbId,
+                Metadata = (p.ProductDetails != null && !string.IsNullOrEmpty(p.ProductDetails.MetadataJson))
+                    ? JsonSerializer.Deserialize<Dictionary<string, object>>(p.ProductDetails.MetadataJson) ?? new Dictionary<string, object>()
+                    : new Dictionary<string, object>()
+            }).Cast<object>().ToList();
+
+            return new ProductPaginateResDto
+            {
+                Page = page,
+                PageSize = pageSize,
+                Products = products,
+                TotalItems = totalItems
+            };
         }
-
 
         public void CreateInternalProduct(InternalProductReqDto dto)
         {
@@ -217,26 +236,17 @@ namespace ProductService.Services.ServiceImpl
                 Price = dto.Price,
                 Quantity = dto.Quantity,
                 PruductType = dto.PruductType,
-                Provider = dto.Provider,
+                Provider = "internal",
                 ImageUrl = dto.ImageUrl,
-                ExternalDbId = Guid.Empty
+                ExternalDbId = Guid.Empty,
+                ProductDetails = new ProductDetails
+                {
+                    MetadataJson = JsonSerializer.Serialize(dto.Metadata ?? new Dictionary<string, object>())
+                }
             };
 
             dbContext.Products.Add(newProduct);
             dbContext.SaveChanges();
-
-            if (dto.PruductType == "novel")
-            {
-                var details = new BookDetails
-                {
-                    ProductId = newProduct.ProductId,
-                    Author = dto.Author ?? string.Empty,
-                    Publisher = dto.Publisher ?? string.Empty,
-                    Category = dto.Category ?? string.Empty
-                };
-                dbContext.BookDetails.Add(details);
-                dbContext.SaveChanges();
-            }
         }
 
         public void UpdateProductInternalAsync(InternalProductReqDto dto, Guid productId)
@@ -249,30 +259,22 @@ namespace ProductService.Services.ServiceImpl
                 product.Price = dto.Price;
                 product.Quantity = dto.Quantity;
                 product.PruductType = dto.PruductType;
-                product.Provider = dto.Provider;
+                product.Provider = "internal";
                 product.ImageUrl = dto.ImageUrl;
 
-                if (dto.PruductType == "novel")
+                if (product.ProductDetails != null)
                 {
-                    var bookDetails = dbContext.BookDetails.FirstOrDefault(b => b.ProductId == product.ProductId);
-                    if (bookDetails != null)
-                    {
-                        bookDetails.Author = dto.Author ?? string.Empty;
-                        bookDetails.Publisher = dto.Publisher ?? string.Empty;
-                        bookDetails.Category = dto.Category ?? string.Empty;
-                    }
-                    else
-                    {
-                        bookDetails = new BookDetails
-                        {
-                            ProductId = product.ProductId,
-                            Author = dto.Author ?? string.Empty,
-                            Publisher = dto.Publisher ?? string.Empty,
-                            Category = dto.Category ?? string.Empty
-                        };
-                        dbContext.BookDetails.Add(bookDetails);
-                    }
+                    product.ProductDetails.MetadataJson = JsonSerializer.Serialize(dto.Metadata ?? new Dictionary<string, object>());
                 }
+                else
+                {
+                    product.ProductDetails = new ProductDetails
+                    {
+                        ProductId = product.ProductId,
+                        MetadataJson = JsonSerializer.Serialize(dto.Metadata ?? new Dictionary<string, object>())
+                    };
+                }
+
                 dbContext.SaveChanges();
             }
         }
@@ -297,7 +299,9 @@ namespace ProductService.Services.ServiceImpl
 
         public async Task<List<ProductResDto>> GetAllProductsAsync(string? provider = null, string? filter = null)
         {
-            IQueryable<Product> query = dbContext.Products;
+            IQueryable<Product> query = dbContext.Products
+                .Include(p => p.ProductDetails)
+                .Where(p => p.ProductDetails != null);
 
             if (!string.IsNullOrEmpty(provider))
             {
@@ -322,12 +326,9 @@ namespace ProductService.Services.ServiceImpl
                     ExternalProductID = p.ExternalDbId,
                     Provider = p.Provider,
                     ProductType = p.PruductType,
-                    Novel = p.BookDetails != null ? new NovelDetailsResDto
-                    {
-                        Author = p.BookDetails.Author,
-                        Publisher = p.BookDetails.Publisher,
-                        Category = p.BookDetails.Category
-                    } : null
+                    Metadata = (p.ProductDetails != null && !string.IsNullOrEmpty(p.ProductDetails.MetadataJson))
+                    ? JsonSerializer.Deserialize<Dictionary<string, object>>(p.ProductDetails.MetadataJson, new JsonSerializerOptions()) ?? new Dictionary<string, object>()
+                    : new Dictionary<string, object>()
                 }).ToListAsync();
 
             return products;

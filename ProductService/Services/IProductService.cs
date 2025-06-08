@@ -6,12 +6,10 @@ namespace ProductService.Services
 {
     public interface IProductService
     {
-        Task<int> SaveProducts(string provider);
-        Task<bool> ReserveProductStockAsync(ProductCommonEventDto @event);
-        Task<bool> RestoreProductStockAsync(ProductCommonEventDto @event);
-        Task<bool> UpdateProductStockAsync(ProductCommonEventUpdateDto @event);
+        Task<int> SaveProducts();
+        Task<bool> ReserveProductStockAsync(Guid productId, int quantity);
         Task<List<string>> GetAllCategoriesAsync();
-        Task<ProductPaginateResDto> GetProductsAsync(string productType, int page, int pageSize, string? filter = null);
+        Task<ProductPaginateResDto> GetProductsAsync(int page, int pageSize, string? filter = null);
         Task<List<string>> GetAllProvidersAsync();
         Task<List<ProductResDto>> GetAllProductsAsync(string? provider = null, string? filter = null);
         void CreateInternalProduct(InternalProductReqDto dto);

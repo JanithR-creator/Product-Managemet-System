@@ -11,6 +11,6 @@
         public string ProductType { get; set; } = "";
         public decimal Price { get; set; }
         public int Quantity { get; set; }
-        public NovelDetailsResDto? Novel { get; set; }
+        public Dictionary<string, object> Metadata { get; set; } = new();
     }
 }

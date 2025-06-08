@@ -22,35 +22,6 @@ namespace ProductService.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ProductService.Model.Entity.BookDetails", b =>
-                {
-                    b.Property<Guid>("detailId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Author")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Publisher")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("detailId");
-
-                    b.HasIndex("ProductId")
-                        .IsUnique();
-
-                    b.ToTable("BookDetails");
-                });
-
             modelBuilder.Entity("ProductService.Model.Entity.Product", b =>
                 {
                     b.Property<Guid>("ProductId")
@@ -90,11 +61,25 @@ namespace ProductService.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("ProductService.Model.Entity.BookDetails", b =>
+            modelBuilder.Entity("ProductService.Model.Entity.ProductDetails", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MetadataJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ProductId");
+
+                    b.ToTable("ProductDetails");
+                });
+
+            modelBuilder.Entity("ProductService.Model.Entity.ProductDetails", b =>
                 {
                     b.HasOne("ProductService.Model.Entity.Product", "Product")
-                        .WithOne("BookDetails")
-                        .HasForeignKey("ProductService.Model.Entity.BookDetails", "ProductId")
+                        .WithOne("ProductDetails")
+                        .HasForeignKey("ProductService.Model.Entity.ProductDetails", "ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -103,7 +88,7 @@ namespace ProductService.Migrations
 
             modelBuilder.Entity("ProductService.Model.Entity.Product", b =>
                 {
-                    b.Navigation("BookDetails");
+                    b.Navigation("ProductDetails");
                 });
 #pragma warning restore 612, 618
         }

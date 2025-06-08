@@ -5,5 +5,6 @@ namespace AdapterService.Services.FactoryService
     public interface IProductFactoryService
     {
         IProductAdapter Factory(string adapterKey);
+        List<IProductAdapter> GetAllAdapters();
     }
 }

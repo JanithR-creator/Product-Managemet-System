@@ -6,11 +6,10 @@ namespace CartService.Services
 {
     public interface ICartService
     {
-        Task<bool> AddItemToCart(CartItemReqDto dto, string provider);
-        Task RemoveItemFromCart(Guid cartItemId, string provider);
-        Task UpdateCartItem(CartItemUpdateReqDto dto, string provider);
+        Task<bool> AddItemToCart(CartItemReqDto dto);
+        Task RemoveItemFromCart(Guid cartItemId);
+        Task UpdateCartItem(CartItemUpdateReqDto dto);
         Task<List<CartItemGetResDto>> GetCartItems(Guid userId);
-        Task<List<CartDetailsResDto>> GetAllCartItems();
         Task<bool> Checkout(CheckoutEventDto @event);
     }
 }
