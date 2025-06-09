@@ -125,7 +125,6 @@ namespace ProductService.Services.ServiceImpl
 
             return products.Count;
         }
-
         public async Task<bool> ReserveProductStockAsync(Guid productId, int quantity)
         {
             var product = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
@@ -140,7 +139,6 @@ namespace ProductService.Services.ServiceImpl
 
             return false;
         }
-
         public void DeleteAllProducts()
         {
             var allBookDetails = dbContext.ProductDetails.ToList();
@@ -151,7 +149,6 @@ namespace ProductService.Services.ServiceImpl
 
             dbContext.SaveChanges();
         }
-
         public async Task<List<string>> GetAllCategoriesAsync()
         {
             var productDetailsList = await dbContext.ProductDetails
@@ -179,8 +176,6 @@ namespace ProductService.Services.ServiceImpl
 
             return categories!;
         }
-
-
         public async Task<ProductPaginateResDto> GetProductsAsync(int page, int pageSize, string? filter = null)
         {
             IQueryable<Product> query = dbContext.Products
@@ -226,7 +221,6 @@ namespace ProductService.Services.ServiceImpl
                 TotalItems = totalItems
             };
         }
-
         public void CreateInternalProduct(InternalProductReqDto dto)
         {
             var newProduct = new Product
@@ -248,10 +242,12 @@ namespace ProductService.Services.ServiceImpl
             dbContext.Products.Add(newProduct);
             dbContext.SaveChanges();
         }
-
         public void UpdateProductInternalAsync(InternalProductReqDto dto, Guid productId)
         {
-            var product = dbContext.Products.FirstOrDefault(p => p.ProductId == productId);
+            var product = dbContext.Products
+                .Include(p => p.ProductDetails)
+                .FirstOrDefault(p => p.ProductId == productId);
+
             if (product != null)
             {
                 product.Name = dto.Name;
@@ -278,7 +274,6 @@ namespace ProductService.Services.ServiceImpl
                 dbContext.SaveChanges();
             }
         }
-
         public void DeleteInternalProductAsync(Guid productId)
         {
             var product = dbContext.Products.FirstOrDefault(p => p.ProductId == productId);
@@ -288,7 +283,6 @@ namespace ProductService.Services.ServiceImpl
                 dbContext.SaveChanges();
             }
         }
-
         public async Task<List<string>> GetAllProvidersAsync()
         {
             return await dbContext.Products
@@ -296,7 +290,6 @@ namespace ProductService.Services.ServiceImpl
                 .Distinct()
                 .ToListAsync();
         }
-
         public async Task<List<ProductResDto>> GetAllProductsAsync(string? provider = null, string? filter = null)
         {
             IQueryable<Product> query = dbContext.Products

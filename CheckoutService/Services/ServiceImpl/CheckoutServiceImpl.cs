@@ -63,7 +63,6 @@ namespace CheckoutService.Services.ServiceImpl
                 Status = checkout.Status
             });
         }
-
         public async Task<bool> MakePaymentAsync(PaymentReqDto dto)
         {
             var checkout = await dbContext.Checkouts
@@ -83,7 +82,7 @@ namespace CheckoutService.Services.ServiceImpl
                 var currentProvider = group.Key;
                 var totalAmount = group.Sum(item => item.UnitPrice * item.Quantity);
 
-                if (currentProvider == "Internal")
+                if (currentProvider == "internal")
                 {
                     continue;
                 }
@@ -134,8 +133,6 @@ namespace CheckoutService.Services.ServiceImpl
 
             return true;
         }
-
-
         public async Task<CheckoutResDto> GetCheckOutByCheckoutIdAsync(Guid checkOutId)
         {
             var checkout = await dbContext.Checkouts
@@ -169,7 +166,6 @@ namespace CheckoutService.Services.ServiceImpl
                 }).ToList()
             };
         }
-
         public async Task<List<PaymentDetailsResDto>> GetAllPaymentDetalsAsync(DateTime? dateTime = null)
             {
                 try

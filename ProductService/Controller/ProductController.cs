@@ -30,7 +30,7 @@ namespace ProductService.Controller
         }
 
         [HttpPut("internal-update")]
-        public IActionResult UpdateProductInternalAsync([FromForm] InternalProductReqDto dto,[FromQuery] Guid productId)
+        public IActionResult UpdateProductInternalAsync([FromBody] InternalProductReqDto dto,[FromQuery] Guid productId)
         {
             productService.UpdateProductInternalAsync(dto, productId);
             return Ok("Product Updated Successfully.");
