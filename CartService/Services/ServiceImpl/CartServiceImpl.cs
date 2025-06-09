@@ -1,77 +1,71 @@
-﻿using CartService.AdapterEndPointController;
-using CartService.Data;
-using CartService.Messaging;
-using CartService.Models.Dtos.ExternalCartDtos;
+﻿using CartService.Data;
 using CartService.Models.Dtos.RequestDtos;
 using CartService.Models.Dtos.ResponseDtos;
 using CartService.Models.Enitity;
 using Common.Events;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
 
 namespace CartService.Services.ServiceImpl
 {
     public class CartServiceImpl : ICartService
     {
         private readonly AppDbContext dbContext;
-        private readonly CartEventPublisher eventPublisher;
-        private readonly IAdapterEndPointHandler adapterEndPointHandler;
 
-        public CartServiceImpl(AppDbContext dbContext, CartEventPublisher eventPublisher, IAdapterEndPointHandler adapterEndPointHandler)
+        public CartServiceImpl(AppDbContext dbContext)
         {
             this.dbContext = dbContext;
-            this.eventPublisher = eventPublisher;
-            this.adapterEndPointHandler = adapterEndPointHandler;
         }
 
-        public async Task<bool> AddItemToCart(CartItemReqDto dto, string provider)
+        public async Task<bool> AddItemToCart(CartItemReqDto dto)
         {
-            var cart = await dbContext.Carts
+            var cart = dbContext.Carts
                 .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.UserId == dto.UserId);
+                .FirstOrDefault(c => c.UserId == dto.UserId);
 
-            if (cart != null && cart.Items.Any(i => i.ProductId == dto.ProductId))
+            if (cart != null)
             {
-                var existingItem = cart?.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
+                var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
+
                 if (existingItem != null)
                 {
-                    existingItem.Quantity += 1;
-
+                    var newQty = existingItem.Quantity +1;
                     await UpdateCartItem(new CartItemUpdateReqDto
-                        {
-                            CartItemId = existingItem.CartItemId,
-                            Quantity = existingItem.Quantity
-                        }, provider);
-
-                    await dbContext.SaveChangesAsync();
+                    {
+                        CartItemId = existingItem.CartItemId,
+                        Quantity = newQty
+                    });
                     return true;
                 }
+
+                var newItem = new CartItem
+                {
+                    ProductId = dto.ProductId,
+                    ExternalProductId = dto.ExternalProductId,
+                    Quantity = 1,
+                    UnitPrice = dto.UnitPrice,
+                    AddedDate = DateTime.UtcNow,
+                    ProductName = dto.ProductName,
+                    ProductDescription = dto.ProductDescription,
+                    Provider = dto.Provider,
+                    Cart = cart,
+                    CartId = cart.CartId
+                };
+                dbContext.CartItems.Add(newItem);
+                dbContext.SaveChanges();
+                return true;
             }
 
-            var @event = new ProductCommonEventDto
+            var newCart = new Cart
             {
-                ProductId = dto.ProductId,
-                Quantity = 1
+                CartId = Guid.NewGuid(),
+                UserId = dto.UserId,
+                Items = new List<CartItem>()
             };
 
-            bool isReserved = await eventPublisher.PublishProductReserveEventAsync(@event);
+            dbContext.Carts.Add(newCart);
+            dbContext.SaveChanges();
 
-            if (!isReserved)
-            {
-                Console.WriteLine($"[X] Insufficient stock for product {dto.ProductId}");
-                return false;
-            }
-
-            if (cart == null)
-            {
-                cart = new Cart { 
-                    UserId = dto.UserId,
-                    Items = new List<CartItem>()
-                };
-                dbContext.Carts.Add(cart);
-            }
-
-            cart.Items.Add(new CartItem
+            var newItemForCart = new CartItem
             {
                 ProductId = dto.ProductId,
                 ExternalProductId = dto.ExternalProductId,
@@ -80,31 +74,20 @@ namespace CartService.Services.ServiceImpl
                 AddedDate = DateTime.UtcNow,
                 ProductName = dto.ProductName,
                 ProductDescription = dto.ProductDescription,
-                Provider = provider
-            });
-            await dbContext.SaveChangesAsync();
-
-            if (dto.ExternalProductId.HasValue && provider != "Internal")
-            {
-                var cartReqDto = new CartReqDto()
-                {
-                    ProductId = dto.ExternalProductId.Value,
-                    Quantity = 1,
-                    UserId = dto.UserId
-                };
-
-                bool resp = await adapterEndPointHandler.AddToCartAsync(provider, cartReqDto);
-
-                return resp;
-            }
+                Provider = dto.Provider,
+                Cart = newCart,
+                CartId = newCart.CartId
+            };
+            dbContext.CartItems.Add(newItemForCart);
+            dbContext.SaveChanges();
 
             return true;
         }
 
-        public async Task RemoveItemFromCart(Guid cartItemId, string provider)
+        public async Task RemoveItemFromCart(Guid cartItemId)
         {
             var item = await dbContext.CartItems
-                .Include(i => i.Cart) // include Cart to access UserId
+                .Include(i => i.Cart)
                 .FirstOrDefaultAsync(i => i.CartItemId == cartItemId);
 
             if (item == null)
@@ -112,34 +95,11 @@ namespace CartService.Services.ServiceImpl
                 throw new EntryPointNotFoundException("Item not found.");
             }
 
-            var restoreEvent = new ProductCommonEventDto
-            {
-                ProductId = item.ProductId,
-                Quantity = item.Quantity
-            };
-
-            if (item.ExternalProductId.HasValue && item.Provider != "Internal")
-            {
-                var cartReqDto = new CartItemRemoveReqDto()
-                {
-                    ProductId = item.ExternalProductId.Value,
-                    UserId = item.Cart.UserId
-                };
-                bool resp = await adapterEndPointHandler.RemoveFromCartAsync(provider, cartReqDto);
-
-                if (!resp)
-                {
-                    throw new Exception("Failed to remove item from external cart.");
-                }
-            }
-
             dbContext.CartItems.Remove(item);
             await dbContext.SaveChangesAsync();
-
-            eventPublisher.PublishProductRestoreEvent(restoreEvent);
         }
 
-        public async Task UpdateCartItem(CartItemUpdateReqDto dto, string provider)
+        public async Task UpdateCartItem(CartItemUpdateReqDto dto)
         {
             var item = await dbContext.CartItems
                 .Include(i => i.Cart)
@@ -149,41 +109,16 @@ namespace CartService.Services.ServiceImpl
 
             if (dto.Quantity <= 0)
             {
-                RemoveItemFromCart(item.CartItemId, provider).Wait();
+                RemoveItemFromCart(item.CartItemId).Wait();
             }
             else
-            {
-                if (item.ExternalProductId.HasValue && item.Provider != "Internal")
-                {
-                    var cartItemUpdateDto = new CartReqDto()
-                    {
-                        ProductId = item.ExternalProductId.Value,
-                        UserId = item.Cart.UserId,
-                        Quantity = dto.Quantity
-                    };
-
-                    var resp = await adapterEndPointHandler.UpdateItemAsync(provider, cartItemUpdateDto);
-
-                    if (!resp)
-                    {
-                        throw new Exception("Failed to update item in external cart.");
-                    }
-                }
-
+            { 
                 int changeQuantity = item.Quantity - dto.Quantity;
 
                 item.Quantity = dto.Quantity;
 
                 dbContext.CartItems.Update(item);
                 await dbContext.SaveChangesAsync();
-
-                var updateEvent = new ProductCommonEventUpdateDto
-                {
-                    ProductId = item.ProductId,
-                    ChangeQuantity = changeQuantity,
-                    Quantity = dto.Quantity
-                };
-                eventPublisher.PublishProductUpdateEvent(updateEvent);
             }
         }
 
@@ -204,31 +139,9 @@ namespace CartService.Services.ServiceImpl
                 UnitPrice = i.UnitPrice,
                 AddedDate = i.AddedDate,
                 ProductName = i.ProductName,
+                ExternalProductId = i.ExternalProductId,
                 ProductDescription = i.ProductDescription,
                 Provider = i.Provider
-            }).ToList();
-        }
-
-        public async Task<List<CartDetailsResDto>> GetAllCartItems()
-        {
-            var carts = await dbContext.Carts
-                .Include(c => c.Items)
-                .ToListAsync();
-            return carts.Select(c => new CartDetailsResDto
-            {
-                CartId = c.CartId,
-                UserId = c.UserId,
-                Items = c.Items.Select(i => new CartItemGetResDto
-                {
-                    CartItemId = i.CartItemId,
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice,
-                    AddedDate = i.AddedDate,
-                    ProductName = i.ProductName,
-                    ProductDescription = i.ProductDescription,
-                    Provider = i.Provider
-                }).ToList()
             }).ToList();
         }
 

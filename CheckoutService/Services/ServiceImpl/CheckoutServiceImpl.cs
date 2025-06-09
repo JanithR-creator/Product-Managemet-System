@@ -33,12 +33,26 @@ namespace CheckoutService.Services.ServiceImpl
                 Items = dto.Items.Select(i => new CheckoutItem
                 {
                     ProductId = i.ProductId,
+                    ExternalProductId = i.ExternalProductId,
                     Quantity = i.Quantity,
                     ProductName = i.ProductName,
                     UnitPrice = i.UnitPrice,
                     Provider = i.Provider
                 }).ToList()
             };
+
+            var productQuantityDict = checkout.Items
+                .ToDictionary(item => item.ProductId, item => item.Quantity);
+
+            bool res = await eventPublisher.PublishProductReserveEventAsync(new ProductCommonEventDto
+            {
+                ProductQuantities = productQuantityDict,
+            });
+
+            if (!res)
+            {
+                throw new InvalidOperationException("Failed to reserve products. Please try again later.");
+            }
 
             dbContext.Checkouts.Add(checkout);
             await dbContext.SaveChangesAsync();
@@ -49,7 +63,6 @@ namespace CheckoutService.Services.ServiceImpl
                 Status = checkout.Status
             });
         }
-
         public async Task<bool> MakePaymentAsync(PaymentReqDto dto)
         {
             var checkout = await dbContext.Checkouts
@@ -69,7 +82,7 @@ namespace CheckoutService.Services.ServiceImpl
                 var currentProvider = group.Key;
                 var totalAmount = group.Sum(item => item.UnitPrice * item.Quantity);
 
-                if (currentProvider == "Internal")
+                if (currentProvider == "internal")
                 {
                     continue;
                 }
@@ -78,7 +91,12 @@ namespace CheckoutService.Services.ServiceImpl
                 {
                     PaymentMethod = dto.PaymentMethod,
                     TotalAmount = totalAmount,
-                    UserId = checkout.UserId
+                    UserId = checkout.UserId,
+                    Products = group.Select(item => new ExtProductDetailDto
+                    {
+                        ProductId = item.ExternalProductId,
+                        Quantity = item.Quantity
+                    }).Select(i => i).ToList()
                 };
 
                 var resp = await adapterEndpointHandler.MakePaymentAaync(extPaymentDto, currentProvider);
@@ -115,8 +133,6 @@ namespace CheckoutService.Services.ServiceImpl
 
             return true;
         }
-
-
         public async Task<CheckoutResDto> GetCheckOutByCheckoutIdAsync(Guid checkOutId)
         {
             var checkout = await dbContext.Checkouts
@@ -150,7 +166,6 @@ namespace CheckoutService.Services.ServiceImpl
                 }).ToList()
             };
         }
-
         public async Task<List<PaymentDetailsResDto>> GetAllPaymentDetalsAsync(DateTime? dateTime = null)
             {
                 try

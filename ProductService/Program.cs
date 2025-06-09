@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using ProductService.AdapterEndPointController;
 using ProductService.AdapterEndPointController.Impl;
 using ProductService.Data;
-using ProductService.Handlers.HandlerImpl;
-using ProductService.Hanlers;
 using ProductService.Messaging;
 using ProductService.Services;
 using ProductService.Services.ServiceImpl;
@@ -29,10 +27,9 @@ namespace ProductService
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IProductService, ProductServiceImpl>();
-            builder.Services.AddScoped<IProductTypeHandler, NovelProductHandler>();
             builder.Services.AddScoped<IAdapterEnpointHandler, AdapterEndpointHandler>();
 
-            builder.Services.AddHostedService<CartEventConsumer>();
+            builder.Services.AddHostedService<CheckoutEventConsumer>();
 
             builder.Services.AddDbContext<AppDbContext>(
                 options=>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

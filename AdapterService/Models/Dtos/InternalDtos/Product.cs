@@ -9,7 +9,7 @@
         public decimal Price { get; set; } = 0;
         public int Quantity {  get; set; } = 0;
         public string PruductType {  get; set; } = string.Empty;
-        public string ImageUrl {  get; set; }
+        public string? ImageUrl {  get; set; }
         public string? Author {  get; set; }
         public string? Publisher {  get; set; }
         public string? Category {  get; set; }

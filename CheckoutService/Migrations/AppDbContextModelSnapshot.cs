@@ -55,6 +55,9 @@ namespace CheckoutService.Migrations
                     b.Property<Guid>("CheckoutId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("ExternalProductId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 

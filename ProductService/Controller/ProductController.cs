@@ -23,14 +23,14 @@ namespace ProductService.Controller
         }
 
         [HttpPost("internal-create")]
-        public IActionResult CreateInternalProduct([FromForm] InternalProductReqDto dto)
+        public IActionResult CreateInternalProduct([FromBody] InternalProductReqDto dto)
         {
             productService.CreateInternalProduct(dto);
             return Ok("Product Created Successfully.");
         }
 
         [HttpPut("internal-update")]
-        public IActionResult UpdateProductInternalAsync([FromForm] InternalProductReqDto dto,[FromQuery] Guid productId)
+        public IActionResult UpdateProductInternalAsync([FromBody] InternalProductReqDto dto,[FromQuery] Guid productId)
         {
             productService.UpdateProductInternalAsync(dto, productId);
             return Ok("Product Updated Successfully.");
@@ -44,11 +44,11 @@ namespace ProductService.Controller
         }
 
         [HttpPost("import")]
-        public async Task<IActionResult> ImportFromAdapter([FromQuery] string provider)
+        public async Task<IActionResult> ImportFromAdapter()
         {
 
 
-            var importedCount = await productService.SaveProducts(provider);
+            var importedCount = await productService.SaveProducts();
 
             if (importedCount == 0)
                 return BadRequest("No products returned from adapter.");
@@ -64,9 +64,9 @@ namespace ProductService.Controller
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProductsAsync([FromQuery] string productType, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? filter = null)
+        public async Task<IActionResult> GetProductsAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? filter = null)
         {
-           var data =await productService.GetProductsAsync(productType, page, pageSize, filter);
+           var data =await productService.GetProductsAsync(page, pageSize, filter);
 
             return Ok(data);
         }

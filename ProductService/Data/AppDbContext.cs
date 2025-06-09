@@ -8,7 +8,7 @@ namespace ProductService.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Product> Products { get; set; }
-        public DbSet<BookDetails> BookDetails { get; set; }
+        public DbSet<ProductDetails> ProductDetails { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Product>(productE =>
@@ -22,19 +22,15 @@ namespace ProductService.Data
                 productE.Property(productE=>productE.Quantity).IsRequired();
                 productE.Property(productE=>productE.PruductType).IsRequired();
                 productE.Property(productE=>productE.ImageUrl).IsRequired(false);
-
-                productE.HasOne(productE => productE.BookDetails)
-                .WithOne(bookDE => bookDE.Product)
-                .HasForeignKey<BookDetails>(bookDE => bookDE.ProductId);
             });
 
-            modelBuilder.Entity<BookDetails>(bookDE =>
             {
-                bookDE.HasKey(bookDE=>bookDE.detailId);
-                bookDE.Property(bookDE=>bookDE.Author).IsRequired();
-                bookDE.Property(bookDE=>bookDE.Publisher).IsRequired();
-                bookDE.Property(bookDE=>bookDE.Category).IsRequired();
-            });
-        }
+                modelBuilder.Entity<Product>()
+                    .HasOne(p => p.ProductDetails)
+                    .WithOne(pd => pd.Product)
+                    .HasForeignKey<ProductDetails>(pd => pd.ProductId);
+            }
+
     }
+}
 }

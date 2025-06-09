@@ -16,9 +16,9 @@ namespace CartService.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddToCart([FromQuery] string provider, [FromBody] CartItemReqDto dto)
+        public async Task<IActionResult> AddToCart([FromBody] CartItemReqDto dto)
         {
-            bool isReseved = await cartService.AddItemToCart(dto, provider);
+            bool isReseved = await cartService.AddItemToCart(dto);
 
             if (!isReseved)
             {
@@ -29,16 +29,16 @@ namespace CartService.Controllers
         }
 
         [HttpDelete("remove")]
-        public async Task<IActionResult> RemoveFromCart([FromQuery] string provider, [FromQuery] Guid CartItemID)
+        public async Task<IActionResult> RemoveFromCart([FromQuery] Guid CartItemID)
         {
-            await cartService.RemoveItemFromCart(CartItemID, provider);
+            await cartService.RemoveItemFromCart(CartItemID);
             return Ok("Item removed from cart and event published.");
         }
 
         [HttpPatch("update")]
-        public async Task<IActionResult> UpdateCartItem([FromQuery] string provider, [FromBody] CartItemUpdateReqDto dto)
+        public async Task<IActionResult> UpdateCartItem([FromBody] CartItemUpdateReqDto dto)
         {
-            await cartService.UpdateCartItem(dto, provider);
+            await cartService.UpdateCartItem(dto);
             return Ok("Cart item updated and event published.");
         }
 
@@ -46,13 +46,6 @@ namespace CartService.Controllers
         public async Task<IActionResult> GetCartItems([FromQuery] Guid userId)
         {
             var items = await cartService.GetCartItems(userId);
-            return Ok(items);
-        }
-
-        [HttpGet("getAll")]
-        public async Task<IActionResult> GetAllCartItems()
-        {
-            var items = await cartService.GetAllCartItems();
             return Ok(items);
         }
     }

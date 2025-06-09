@@ -4,6 +4,6 @@ namespace ProductService.AdapterEndPointController
 {
     public interface IAdapterEnpointHandler
     {
-        Task<List<ProductReqDto>> GetProductsListAsync(string provider);
+        Task<List<ProductReqDto>> GetProductsListAsync();
     }
 }

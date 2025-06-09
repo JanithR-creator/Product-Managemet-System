@@ -16,49 +16,18 @@ namespace AdapterService.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetFromAdapter([FromQuery] string provider)
+        public async Task<IActionResult> GetFromAdapter()
         {
-            var adapter = this.adapterFactoryService.Factory(provider);
-            var products = await adapter.GetProductsAsync();
-            return Ok(products);
-        }
+            var adapters = this.adapterFactoryService.GetAllAdapters();
+            List<Product> allProducts = new List<Product>();
 
-        [HttpPost]
-        public async Task<IActionResult> PostToAdapter([FromQuery] string provider, [FromBody] CartReqDto dto)
-        {
-            var adapter = this.adapterFactoryService.Factory(provider);
-            var response = await adapter.AddToCartAsync(dto);
-
-            if (!response)
+            foreach (var adapter in adapters)
             {
-                return BadRequest("Failed to add product to cart.");
+                var products = await adapter.GetProductsAsync();
+                allProducts.AddRange(products);
             }
 
-            return Ok("Successfully add to cart.");
-        }
-
-        [HttpDelete]
-        public async Task<IActionResult> DeleteFromAdapter([FromQuery] string provider, [FromBody] ItemRemoveReqDto dto)
-        {
-            var adapter = this.adapterFactoryService.Factory(provider);
-            var response = await adapter.RemoveFromCartAsync(dto);
-            if (!response)
-            {
-                return BadRequest("Failed to remove product from cart.");
-            }
-            return Ok("Successfully removed from cart.");
-        }
-
-        [HttpPut]
-        public async Task<IActionResult> UpdateItem([FromQuery] string provider, [FromBody] CartReqDto dto)
-        {
-            var adapter = this.adapterFactoryService.Factory(provider);
-            var response = await adapter.UpdateItemAsync(dto);
-            if (!response)
-            {
-                return BadRequest("Failed to update item in cart.");
-            }
-            return Ok("Successfully updated item in cart.");
+            return Ok(allProducts);
         }
 
         [HttpPost("make-payment")]
